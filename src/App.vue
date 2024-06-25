@@ -3,7 +3,7 @@
     <div class="app">
       <h1>SimulationVuer</h1>
       <el-radio-group v-model="id" size="small">
-        <el-radio-button :class="className(dataset.id)" v-for="dataset in datasets" v-bind:key="dataset.id" :label="dataset.id" />
+        <el-radio-button :class="className(dataset.id)" v-for="dataset in datasets" v-bind:key="dataset.id" :label="dataset.id" :value="dataset.id" />
       </el-radio-group>
     </div>
     <hr />
