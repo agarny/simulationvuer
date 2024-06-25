@@ -13,7 +13,7 @@
           <strong>Dataset <a :href="datasetUrl(dataset.id)" target="_blank">{{ dataset.id }}</a>:</strong> {{ dataset.description }}
         </span>
         <hr />
-        <SimulationVuer :apiLocation="apiLocation" :id="dataset.id" />
+        <SimulationVuer :apiLocation="apiLocation" :id="dataset.id" :preferredSolver="preferredSolver" />
       </div>
     </div>
     <hr />
@@ -44,6 +44,7 @@ export default {
       ],
       id: 0,
       ready: [],
+      preferredSolver: SimulationVuer.LIBOPENCOR_SOLVER,
     };
   },
   methods: {
