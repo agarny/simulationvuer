@@ -85,18 +85,16 @@ export default {
   },
   data: function() {
     let xmlhttp = new XMLHttpRequest();
-    let name = undefined;
-    let uuid = undefined;
 
-    xmlhttp.open("GET", this.apiLocation + "/sim/dataset/" + this.id, false);
+    xmlhttp.open("GET", this.apiLocation + "/sim/dataset/" + this.id);
     xmlhttp.setRequestHeader("Content-type", "application/json");
     xmlhttp.onreadystatechange = () => {
       if (xmlhttp.readyState === 4) {
         if (xmlhttp.status === 200) {
           let datasetInfo = JSON.parse(xmlhttp.responseText);
 
-          name = datasetInfo.name;
-          uuid = (datasetInfo.study !== undefined)?datasetInfo.study.uuid:undefined;
+          this.name = datasetInfo.name;
+          this.uuid = (datasetInfo.study !== undefined)?datasetInfo.study.uuid:undefined;
         }
       }
     };
@@ -109,7 +107,7 @@ export default {
       isMounted: false,
       isSimulationValid: true,
       layout: [],
-      name: name,
+      name: null,
       perfectScollbarOptions: {
         suppressScrollX: true,
       },
@@ -119,7 +117,7 @@ export default {
       simulationUiInfo: {},
       userMessage: "",
       ui: null,
-      uuid: uuid,
+      uuid: null,
     };
   },
   methods: {
