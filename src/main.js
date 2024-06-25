@@ -3,7 +3,7 @@ import * as VueRouter from "vue-router";
 import App from "./App.vue";
 import ElementPlus from "element-plus";
 
-const routes = [{ path: "/" }];
+const routes = [{ path: "/", component: App }];
 const router = VueRouter.createRouter({
   // Provide the history implementation to use. We are using the hash history for simplicity here.
   history: VueRouter.createWebHashHistory(),
