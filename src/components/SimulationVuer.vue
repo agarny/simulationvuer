@@ -93,21 +93,23 @@ export default {
 
     // Retrieve some information about the dataset.
 
-    let xmlhttp = new XMLHttpRequest();
+    if (this.id > 0) {
+      let xmlhttp = new XMLHttpRequest();
 
-    xmlhttp.open("GET", this.apiLocation + "/sim/dataset/" + this.id);
-    xmlhttp.setRequestHeader("Content-type", "application/json");
-    xmlhttp.onreadystatechange = () => {
-      if (xmlhttp.readyState === 4) {
-        if (xmlhttp.status === 200) {
-          let datasetInfo = JSON.parse(xmlhttp.responseText);
+      xmlhttp.open("GET", this.apiLocation + "/sim/dataset/" + this.id);
+      xmlhttp.setRequestHeader("Content-type", "application/json");
+      xmlhttp.onreadystatechange = () => {
+        if (xmlhttp.readyState === 4) {
+          if (xmlhttp.status === 200) {
+            let datasetInfo = JSON.parse(xmlhttp.responseText);
 
-          this.name = datasetInfo.name;
-          this.uuid = (datasetInfo.study !== undefined)?datasetInfo.study.uuid:undefined;
+            this.name = datasetInfo.name;
+            this.uuid = (datasetInfo.study !== undefined)?datasetInfo.study.uuid:undefined;
+          }
         }
-      }
-    };
-    xmlhttp.send();
+      };
+      xmlhttp.send();
+    }
 
     return {
       errorMessage: "",
@@ -438,9 +440,9 @@ export default {
     },
   },
   created: function() {
-    // Try to retrieve the UI information, but only if we have a name.
+    // Try to retrieve the UI information.
 
-    if (this.name !== undefined) {
+    if (this.id > 0) {
       this.userMessage = "Retrieving UI information...";
       this.showUserMessage = true;
 
