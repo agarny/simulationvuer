@@ -54,6 +54,7 @@ import { ElButton, ElDivider, ElLoading } from "element-plus";
 import { evaluateValue, evaluateSimulationValue, OPENCOR_SOLVER_NAME } from "./common.js";
 import { validJson } from "./json.js";
 import { initialiseUi, finaliseUi } from "./ui.js";
+import libOpenCOR from "./libopencor.js";
 
 /**
  * SimulationVuer
@@ -84,6 +85,14 @@ export default {
     },
   },
   data: function() {
+    // Load libOpenCOR before doing anything else.
+
+    libOpenCOR().then((libopencor) => {
+      this.libopencor = libopencor;
+    });
+
+    // Retrieve some information about the dataset.
+
     let xmlhttp = new XMLHttpRequest();
 
     xmlhttp.open("GET", this.apiLocation + "/sim/dataset/" + this.id);
@@ -107,6 +116,7 @@ export default {
       isMounted: false,
       isSimulationValid: true,
       layout: [],
+      libopencor: null,
       name: null,
       perfectScollbarOptions: {
         suppressScrollX: true,
