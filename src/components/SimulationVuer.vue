@@ -19,7 +19,7 @@
           />
         </div>
         <div class="primary-button">
-          <el-button type="primary" size="small" @click="startSimulation()">Run Simulation</el-button>
+          <el-button type="primary" size="small" @click="startSimulation()" v-if="!this.libopencor">Run Simulation</el-button>
         </div>
         <div class="secondary-button" v-if="uuid">
           <el-button size="small" @click="runOnOsparc()">Run on oSPARC</el-button>
@@ -56,10 +56,15 @@ import { validJson } from "./json.js";
 import { initialiseUi, finaliseUi } from "./ui.js";
 import libOpenCOR from "./libopencor.js";
 
+const LIBOPENCOR_SOLVER = "libOpenCOR";
+const OSPARC_SOLVER = "oSPARC";
+
 /**
  * SimulationVuer
  */
 export default {
+  LIBOPENCOR_SOLVER: LIBOPENCOR_SOLVER,
+  OSPARC_SOLVER: OSPARC_SOLVER,
   name: "SimulationVuer",
   components: {
     PlotVuer,
@@ -83,13 +88,24 @@ export default {
       required: true,
       type: Number,
     },
+    /**
+     * The preferred solver to use for OpenCOR-based simulations. This property
+     * is optional and defaults to "oSPARC". The only value that is currently
+     * supported is "libOpenCOR". Any other value will default to "oSPARC".
+     */
+     preferredSolver: {
+      type: String,
+      default: OSPARC_SOLVER,
+    },
   },
   data: function() {
-    // Load libOpenCOR before doing anything else.
+    // Load libOpenCOR, if needed, before doing anything else.
 
-    libOpenCOR().then((libopencor) => {
-      this.libopencor = libopencor;
-    });
+    if (this.preferredSolver === LIBOPENCOR_SOLVER) {
+      libOpenCOR().then((libopencor) => {
+        this.libopencor = libopencor;
+      });
+    }
 
     // Retrieve some information about the dataset.
 
