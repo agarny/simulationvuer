@@ -99,14 +99,6 @@ export default {
     },
   },
   data: function() {
-    // Load libOpenCOR, if needed, before doing anything else.
-
-    if (this.preferredSolver === LIBOPENCOR_SOLVER) {
-      libOpenCOR().then((libopencor) => {
-        this.libopencor = libopencor;
-      });
-    }
-
     // Retrieve some information about the dataset.
 
     if (this.id > 0) {
@@ -180,6 +172,16 @@ export default {
 
       if (!this.hasValidSimulationUiInfo) {
         return;
+      }
+
+      // Load libOpenCOR, if needed, before doing anything else.
+
+      if (simulationUiInfo.simulation.opencor !== undefined) {
+        if (this.preferredSolver === LIBOPENCOR_SOLVER) {
+          libOpenCOR().then((libopencor) => {
+            this.libopencor = libopencor;
+          });
+        }
       }
 
       // Initialise our UI.
