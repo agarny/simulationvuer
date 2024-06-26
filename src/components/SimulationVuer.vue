@@ -240,66 +240,99 @@ export default {
     },
     /**
      * @vuese
-     * Finish creating the `request` that is going to be used by `startSimulation` to ask oSPARC to start the
-     * simulation. `request` is a JSON object that initially contains the solver to be used by oSPARC and to which
-     * additional is added.
-     * @arg `request`
+     * Data needed to set a model's parameters.
      */
-    retrieveRequest() {
-      // Solver to use.
+    parametersData() {
+      let res = undefined;
 
-      let request = {
-        solver: this.solver
-      };
+      if (this.simulationUiInfo.parameters !== undefined) {
+        res = {};
 
-      // Settings specific to OpenCOR/oSPARC.
-
-      if (this.opencorBasedSimulation) {
-        request.opencor = {
-          model_url: this.simulationUiInfo.simulation.opencor.resource,
-          json_config: {},
-        };
-      } else {
-        request.osparc = {};
+        this.simulationUiInfo.parameters.forEach((parameter) => {
+          res[parameter.name] = evaluateValue(this, parameter.value);
+        });
       }
 
-      // Specify the ending point and point interval, if we have some.
+      return res;
+    },
+    /**
+     * @vuese
+     * Data needed to specify the model output.
+     */
+    outputData() {
+      let res = undefined;
 
-      if (   this.opencorBasedSimulation
-          && (this.simulationUiInfo.simulation.opencor.endingPoint !== undefined)
+      if (this.simulationUiInfo.output.data !== undefined)  {
+        let index = -1;
+
+        res = [];
+
+        this.simulationUiInfo.output.data.forEach((outputData) => {
+          res[++index] = outputData.name;
+        });
+      }
+
+      return res;
+    },
+    /**
+     * @vuese
+     * Data needed to run an OpenCOR-based simulation.
+     */
+    opencorData() {
+      let res = {
+        model_url: this.simulationUiInfo.simulation.opencor.resource,
+        json_config: {},
+      };
+
+      if (   (this.simulationUiInfo.simulation.opencor.endingPoint !== undefined)
           && (this.simulationUiInfo.simulation.opencor.pointInterval !== undefined)) {
-        request.opencor.json_config.simulation = {
+        res.json_config.simulation = {
           "Ending point": this.simulationUiInfo.simulation.opencor.endingPoint,
           "Point interval": this.simulationUiInfo.simulation.opencor.pointInterval,
         };
       }
 
-      // Specify the parameters, if any.
+      let parameters = this.parametersData();
 
-      if (this.simulationUiInfo.parameters !== undefined) {
-        let parameters = {};
-
-        this.simulationUiInfo.parameters.forEach((parameter) => {
-          parameters[parameter.name] = evaluateValue(this, parameter.value);
-        });
-
-        if (this.opencorBasedSimulation) {
-          request.opencor.json_config.parameters = parameters;
-        } else {
-          request.osparc.job_inputs = parameters;
-        }
+      if (parameters !== undefined) {
+        res.json_config.parameters = parameters;
       }
 
-      // Specify what we want to retrieve, if anything.
+      let output = this.outputData();
 
-      if (this.opencorBasedSimulation && (this.simulationUiInfo.output.data !== undefined))  {
-        let index = -1;
+      if (output !== undefined) {
+        res.json_config.output = output;
+      }
 
-        request.opencor.json_config.output = [];
+      return res;
+    },
+    /**
+     * @vuese
+     * Data needed to run an oSPARC-based simulation.
+     */
+    osparcData() {
+      let res = {};
+      let parameters = this.parametersData();
 
-        this.simulationUiInfo.output.data.forEach((outputData) => {
-          request.opencor.json_config.output[++index] = outputData.name;
-        });
+      if (parameters !== undefined) {
+        res.job_inputs = parameters;
+      }
+
+      return res;
+    },
+    /**
+     * @vuese
+     * Create the `request` that is going to be used by `startSimulation` to ask oSPARC to start the simulation.
+     */
+    retrieveRequest() {
+      let request = {
+        solver: this.solver
+      };
+
+      if (this.opencorBasedSimulation) {
+        request.opencor = this.opencorData();
+      } else {
+        request.osparc = this.osparcData();
       }
 
       return request;
