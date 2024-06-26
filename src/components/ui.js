@@ -4,7 +4,7 @@ export function initialiseUi(parent) {
   // Initialise some output-related data.
 
   parent.simulationUiInfo.output.data.forEach((data) => {
-    parent.simulationDataId[data.id] = data.name;
+    parent.simulationResultsId[data.id] = data.name;
   });
 
   let index = -1;
@@ -47,7 +47,7 @@ export function initialiseUi(parent) {
       },
     };
 
-    parent.simulationData[index] = [{}];
+    parent.simulationResults[index] = [{}];
   });
 }
 

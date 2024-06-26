@@ -24,7 +24,7 @@ export function evaluateValue(parent, value) {
 
 export function evaluateSimulationValue(parent, results, value, i) {
   parent.simulationUiInfo.output.data.forEach((data) => {
-    value = doEvaluateValue(value, data.id, results[parent.simulationDataId[data.id]][i]);
+    value = doEvaluateValue(value, data.id, results[parent.simulationResultsId[data.id]][i]);
   });
 
   return Function("return " + value + ";")();
