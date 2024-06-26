@@ -128,6 +128,7 @@ export default {
       layout: [],
       libopencor: null,
       name: null,
+      opencorBasedSimulation: true,
       perfectScollbarOptions: {
         suppressScrollX: true,
       },
@@ -135,6 +136,7 @@ export default {
       simulationData: [],
       simulationDataId: {},
       simulationUiInfo: {},
+      solver: undefined,
       userMessage: "",
       ui: null,
       uuid: null,
@@ -174,14 +176,28 @@ export default {
         return;
       }
 
+      // Retrieve and keep track of the solver to be used for the simulation.
+
+      this.simulationUiInfo.simulation.solvers.forEach((solver) => {
+        if ((solver.if === undefined) || evaluateValue(this, solver.if)) {
+          this.solver = solver;
+        }
+      });
+
+      if (this.solver === undefined) {
+        console.warn("SIMULATION: no solver name and/or solver version specified.");
+
+        return;
+      }
+
+      this.opencorBasedSimulation = this.solver.name === OPENCOR_SOLVER_NAME;
+
       // Load libOpenCOR, if needed, before doing anything else.
 
-      if (simulationUiInfo.simulation.opencor !== undefined) {
-        if (this.preferredSolver === LIBOPENCOR_SOLVER) {
-          libOpenCOR().then((libopencor) => {
-            this.libopencor = libopencor;
-          });
-        }
+      if (this.opencorBasedSimulation && (this.preferredSolver === LIBOPENCOR_SOLVER)) {
+        libOpenCOR().then((libopencor) => {
+          this.libopencor = libopencor;
+        });
       }
 
       // Initialise our UI.
@@ -229,12 +245,16 @@ export default {
      * additional is added.
      * @arg `request`
      */
-    retrieveRequest(request) {
+    retrieveRequest() {
+      // Solver to use.
+
+      let request = {
+        solver: this.solver
+      };
+
       // Settings specific to OpenCOR/oSPARC.
 
-      let isOpencorSimulation = request.solver.name === OPENCOR_SOLVER_NAME;
-
-      if (isOpencorSimulation) {
+      if (this.opencorBasedSimulation) {
         request.opencor = {
           model_url: this.simulationUiInfo.simulation.opencor.resource,
           json_config: {},
@@ -245,7 +265,7 @@ export default {
 
       // Specify the ending point and point interval, if we have some.
 
-      if (   isOpencorSimulation
+      if (   this.opencorBasedSimulation
           && (this.simulationUiInfo.simulation.opencor.endingPoint !== undefined)
           && (this.simulationUiInfo.simulation.opencor.pointInterval !== undefined)) {
         request.opencor.json_config.simulation = {
@@ -263,7 +283,7 @@ export default {
           parameters[parameter.name] = evaluateValue(this, parameter.value);
         });
 
-        if (isOpencorSimulation) {
+        if (this.opencorBasedSimulation) {
           request.opencor.json_config.parameters = parameters;
         } else {
           request.osparc.job_inputs = parameters;
@@ -272,7 +292,7 @@ export default {
 
       // Specify what we want to retrieve, if anything.
 
-      if (isOpencorSimulation && (this.simulationUiInfo.output.data !== undefined))  {
+      if (this.opencorBasedSimulation && (this.simulationUiInfo.output.data !== undefined))  {
         let index = -1;
 
         request.opencor.json_config.output = [];
@@ -400,22 +420,6 @@ export default {
      * button which, when clicked, calls this method.
      */
     startSimulation() {
-      // Retrieve the solver to be used for the simulation.
-
-      let solver = undefined;
-
-      this.simulationUiInfo.simulation.solvers.forEach((crtSolver) => {
-        if ((crtSolver.if === undefined) || evaluateValue(this, crtSolver.if)) {
-          solver = crtSolver;
-        }
-      });
-
-      if (solver === undefined) {
-        console.warn("SIMULATION: no solver name and/or solver version specified.");
-
-        return;
-      }
-
       // Start the simulation (after resetting our previous simulation data, in
       // case there were sonme).
       // Note: we use this.$nextTick() so that the user message is shown before
@@ -451,9 +455,7 @@ export default {
             }
           }
         };
-        xmlhttp.send(JSON.stringify(this.retrieveRequest({
-          solver: solver
-        })));
+        xmlhttp.send(JSON.stringify(this.retrieveRequest()));
       });
     },
   },
