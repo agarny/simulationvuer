@@ -33,7 +33,7 @@
         <PlotVuer v-for="(outputPlot, index) in simulationUiInfo.output.plots"
           :key="`output-${index}`"
           :metadata="plotMetadata(index)"
-          :data-source="{data: simulationData[index]}"
+          :data-source="{data: simulationResults[index]}"
           :plotLayout="layout[index]"
           :plotType="'plotly-only'"
           :selectorUi="false"
@@ -133,8 +133,8 @@ export default {
         suppressScrollX: true,
       },
       showUserMessage: false,
-      simulationData: [],
-      simulationDataId: {},
+      simulationResults: [],
+      simulationResultsId: {},
       simulationUiInfo: {},
       solver: undefined,
       userMessage: "",
@@ -212,8 +212,8 @@ export default {
       this.$nextTick(() => {
         finaliseUi(this);
 
-        this.simulationData.forEach((data, index) => {
-          this.simulationData[index] = [{
+        this.simulationResults.forEach((data, index) => {
+          this.simulationResults[index] = [{
             x: [],
             y: [],
             type: "scatter",
@@ -343,7 +343,7 @@ export default {
       // Get the results ready for plotting.
 
       let index = -1;
-      let iMax = results[this.simulationDataId[Object.keys(this.simulationDataId)[0]]].length;
+      let iMax = results[this.simulationResultsId[Object.keys(this.simulationResultsId)[0]]].length;
 
       this.simulationUiInfo.output.plots.forEach((outputPlot) => {
         let xValue = [];
@@ -354,7 +354,7 @@ export default {
           yValue[i] = evaluateSimulationValue(this, results, outputPlot.yValue, i);
         }
 
-        this.simulationData[++index] = [
+        this.simulationResults[++index] = [
           {
             x: xValue,
             y: yValue,
@@ -429,7 +429,7 @@ export default {
       this.showUserMessage = true;
 
       this.$nextTick(() => {
-        this.simulationData = [];
+        this.simulationResults = [];
 
         let xmlhttp = new XMLHttpRequest();
 
