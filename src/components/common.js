@@ -1,3 +1,4 @@
+export const PMR_URL = "https://models.physiomeproject.org/";
 export const OPENCOR_SOLVER_NAME = "simcore/services/comp/opencor";
 
 function doEvaluateValue(value, from, to) {

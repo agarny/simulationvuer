@@ -51,7 +51,7 @@ import { PlotVuer } from "@abi-software/plotvuer";
 import "@abi-software/plotvuer/dist/style.css";
 import SimulationVuerInput from "./SimulationVuerInput.vue";
 import { ElButton, ElDivider, ElLoading } from "element-plus";
-import { evaluateValue, evaluateSimulationValue, OPENCOR_SOLVER_NAME } from "./common.js";
+import { evaluateValue, evaluateSimulationValue, OPENCOR_SOLVER_NAME, PMR_URL } from "./common.js";
 import { validJson } from "./json.js";
 import { initialiseUi, finaliseUi } from "./ui.js";
 import libOpenCOR from "./libopencor.js";
@@ -160,6 +160,83 @@ export default {
     },
     /**
      * @vuese
+     * Download the PMR file associated with the given `url`.
+     * @arg `url`
+     */
+    downloadPmrFile(url) {
+      return new Promise((resolve, reject) => {
+        let xmlhttp = new XMLHttpRequest();
+
+        xmlhttp.open("POST", this.apiLocation + "/pmr_file");
+        xmlhttp.setRequestHeader("Content-type", "application/json");
+        xmlhttp.onreadystatechange = () => {
+          if (xmlhttp.readyState === 4) {
+            if (xmlhttp.status === 200) {
+              resolve(Uint8Array.from(atob(xmlhttp.response), (c) => c.charCodeAt(0)));
+            }
+            reject();
+          }
+        };
+        xmlhttp.send(JSON.stringify({path: url.replace(PMR_URL, "")}));
+      });
+    },
+    /**
+     * @vuese
+     * Manage the file associated with the given `url` and `fileContents`.
+     * @arg `url`
+     * @arg `fileContents`
+     */
+    manageFile(url, fileContents) {
+      const fileManager = this.libopencor.FileManager.instance();
+      let file = fileManager.file(url);
+
+      if (!file) {
+        file = new this.libopencor.File(url);
+      }
+
+      const fileContentsPtr = this.libopencor._malloc(fileContents.length);
+      const mem = new Uint8Array(this.libopencor.HEAPU8.buffer, fileContentsPtr, fileContents.length);
+
+      mem.set(fileContents);
+
+      file.setContents(fileContentsPtr, fileContents.length);
+
+      this.libopencor._free(fileContentsPtr);
+
+      return file;
+    },
+    /**
+     * @vuese
+     * Run the simulation using libOpenCOR.
+     */
+    runSimulation() {
+      // First, retrieve the model file, if needed.
+
+      let modelUrl = this.opencorData().model_url;
+      const fileManager = this.libopencor.FileManager.instance();
+
+      if (!fileManager.file(modelUrl)) {
+        // The file doesn't exist, so retrieve its content and add it to the
+        // file manager.
+
+        this.downloadPmrFile(modelUrl).then((fileContents) => {
+          const file = this.manageFile(modelUrl, fileContents);
+          const fileType = file.type().value;
+
+          if (fileType === this.libopencor.File.Type.CELLML_FILE.value) {
+            console.log(`>>> ${modelUrl} is a CellML file.`);
+          } else if (fileType === this.libopencor.File.Type.SEDML_FILE.value) {
+            console.log(`>>> ${modelUrl} is a SED-ML file.`);
+          } else if (fileType === this.libopencor.File.Type.COMBINE_ARCHIVE.value) {
+            console.log(`>>> ${modelUrl} is a COMBINE archive.`);
+          } else {
+            console.log(`>>> ${modelUrl} cannot be recognised.`);
+          }
+        });
+      }
+    },
+    /**
+     * @vuese
      * Build the simulation UI using `simulationUiInfo`, a JSON object that describes the contents of the simulation UI.
      * @arg `simulationUiInfo`
      */
@@ -196,7 +273,35 @@ export default {
 
       if (this.opencorBasedSimulation && (this.preferredSolver === LIBOPENCOR_SOLVER)) {
         libOpenCOR().then((libopencor) => {
+          // Keep track of the libOpenCOR module.
+
           this.libopencor = libopencor;
+
+          // Retrieve the model file, if needed.
+
+          const modelUrl = this.opencorData().model_url;
+
+          this.downloadPmrFile(modelUrl).then((fileContents) => {
+            const file = this.manageFile(modelUrl, fileContents);
+
+            // In the case of a SED-ML file, we need to retrieve its CellML
+            // file.
+
+            if (file.type().value === this.libopencor.File.Type.SEDML_FILE.value) {
+              const document = new this.libopencor.SedDocument(file);
+              const cellmlUrl = document.models().get(0).file().url();
+
+              this.downloadPmrFile(cellmlUrl).then((cellmlFileContents) => {
+                this.manageFile(cellmlUrl, cellmlFileContents);
+
+                this.runSimulation();
+              });
+
+              document.delete();
+            } else {
+              this.runSimulation();
+            }
+          });
         });
       }
 
