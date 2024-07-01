@@ -605,9 +605,11 @@ export default {
           if (xmlhttp.readyState === 4) {
             this.showUserMessage = false;
 
-            if (xmlhttp.status === 200) {
-              this.buildSimulationUi(JSON.parse(xmlhttp.responseText));
-            }
+            this.$nextTick(() => {
+              if (xmlhttp.status === 200) {
+                this.buildSimulationUi(JSON.parse(xmlhttp.responseText));
+              }
+            });
           }
         };
         xmlhttp.send();
