@@ -210,31 +210,21 @@ export default {
      * Run the simulation using libOpenCOR.
      */
     runSimulation() {
-      // First, retrieve the model file, if needed.
-
-      let modelUrl = this.opencorData().model_url;
       const fileManager = this.libopencor.FileManager.instance();
+      const opencorData = this.opencorData();
+      const modelUrl = opencorData.model_url;
+      const document = new this.libopencor.SedDocument(fileManager.file(modelUrl));
+      const instance = document.instantiate();
 
-      if (!fileManager.file(modelUrl)) {
-        // The file doesn't exist, so retrieve its content and add it to the
-        // file manager.
+      instance.run();
 
-        this.downloadPmrFile(modelUrl).then((fileContents) => {
-          const file = this.manageFile(modelUrl, fileContents);
-          const fileType = file.type().value;
+      const instanceTask = instance.tasks().get(0);
 
-          if (fileType === this.libopencor.File.Type.CELLML_FILE.value) {
-            console.log(`>>> ${modelUrl} is a CellML file.`);
-          } else if (fileType === this.libopencor.File.Type.SEDML_FILE.value) {
-            console.log(`>>> ${modelUrl} is a SED-ML file.`);
-          } else if (fileType === this.libopencor.File.Type.COMBINE_ARCHIVE.value) {
-            console.log(`>>> ${modelUrl} is a COMBINE archive.`);
-          } else {
-            console.log(`>>> ${modelUrl} cannot be recognised.`);
-          }
-        });
-      }
-    },
+      console.log(opencorData);
+      console.log(`>>> VOI: ${instanceTask.voiName()} [${instanceTask.voiUnit()}]`);
+
+      document.delete();
+  },
     /**
      * @vuese
      * Build the simulation UI using `simulationUiInfo`, a JSON object that describes the contents of the simulation UI.
