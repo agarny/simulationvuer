@@ -261,35 +261,50 @@ export default {
       // Load libOpenCOR, if needed, before doing anything else.
 
       if (this.opencorBasedSimulation && (this.preferredSolver === LIBOPENCOR_SOLVER)) {
-        libOpenCOR().then((libopencor) => {
-          // Keep track of the libOpenCOR module.
+        this.userMessage = "Retrieving the model...";
+        this.showUserMessage = true;
+        // Note: we use this.$nextTick() so that the user message is shown
+        //       before we download the model file.
 
-          this.libopencor = libopencor;
+        this.$nextTick(() => {
+          libOpenCOR().then((libopencor) => {
+            // Keep track of the libOpenCOR module.
 
-          // Retrieve the model file, if needed.
+            this.libopencor = libopencor;
 
-          const modelUrl = this.opencorData().model_url;
+            // Retrieve the model file, if needed.
 
-          this.downloadPmrFile(modelUrl).then((fileContents) => {
-            const file = this.manageFile(modelUrl, fileContents);
+            const modelUrl = this.opencorData().model_url;
 
-            // In the case of a SED-ML file, we need to retrieve its CellML
-            // file.
+            this.downloadPmrFile(modelUrl).then((fileContents) => {
+              const file = this.manageFile(modelUrl, fileContents);
 
-            if (file.type().value === this.libopencor.File.Type.SEDML_FILE.value) {
-              const document = new this.libopencor.SedDocument(file);
-              const cellmlUrl = document.models().get(0).file().url();
+              // In the case of a SED-ML file, we also need to retrieve its
+              // corresponding CellML file.
 
-              this.downloadPmrFile(cellmlUrl).then((cellmlFileContents) => {
-                this.manageFile(cellmlUrl, cellmlFileContents);
+              if (file.type().value === this.libopencor.File.Type.SEDML_FILE.value) {
+                const document = new this.libopencor.SedDocument(file);
+                const cellmlUrl = document.models().get(0).file().url();
 
-                this.runSimulation();
-              });
+                this.downloadPmrFile(cellmlUrl).then((cellmlFileContents) => {
+                  this.manageFile(cellmlUrl, cellmlFileContents);
 
-              document.delete();
-            } else {
-              this.runSimulation();
-            }
+                  this.showUserMessage = false;
+
+                  this.$nextTick(() => {
+                    this.runSimulation();
+                  });
+                });
+
+                document.delete();
+              } else {
+                this.showUserMessage = false;
+
+                this.$nextTick(() => {
+                  this.runSimulation();
+                });
+              }
+            });
           });
         });
       }
