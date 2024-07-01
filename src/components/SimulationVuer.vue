@@ -235,7 +235,14 @@ export default {
         simulation.setNumberOfSteps(numberOfSteps);
       }
 
+      // Run the simulation after passing some initial conditions to it, if any.
+
       const instance = document.instantiate();
+      const parametersConfig = (jsonConfig !== undefined) ? jsonConfig.parameters : undefined;
+
+      for (const [parameter, value] of Object.entries(parametersConfig)) {
+        instance.addInitialCondition(parameter, value);
+      }
 
       instance.run();
 
