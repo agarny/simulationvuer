@@ -102,10 +102,9 @@ export default {
     // Retrieve some information about the dataset.
 
     if (this.id > 0) {
-      let xmlhttp = new XMLHttpRequest();
+      const xmlhttp = new XMLHttpRequest();
 
       xmlhttp.open("GET", this.apiLocation + "/sim/dataset/" + this.id);
-      xmlhttp.setRequestHeader("Content-type", "application/json");
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
           if (xmlhttp.status === 200) {
@@ -165,7 +164,7 @@ export default {
      */
     downloadPmrFile(url) {
       return new Promise((resolve, reject) => {
-        let xmlhttp = new XMLHttpRequest();
+        const xmlhttp = new XMLHttpRequest();
 
         xmlhttp.open("POST", this.apiLocation + "/pmr_file");
         xmlhttp.setRequestHeader("Content-type", "application/json");
@@ -224,7 +223,7 @@ export default {
       console.log(`>>> VOI: ${instanceTask.voiName()} [${instanceTask.voiUnit()}]`);
 
       document.delete();
-  },
+    },
     /**
      * @vuese
      * Build the simulation UI using `simulationUiInfo`, a JSON object that describes the contents of the simulation UI.
@@ -501,7 +500,7 @@ export default {
     checkSimulation(data) {
       // Check the simulation.
 
-      let xmlhttp = new XMLHttpRequest();
+      const xmlhttp = new XMLHttpRequest();
 
       xmlhttp.open("POST", this.apiLocation + "/check_simulation");
       xmlhttp.setRequestHeader("Content-type", "application/json");
@@ -559,7 +558,7 @@ export default {
       this.$nextTick(() => {
         this.simulationResults = [];
 
-        let xmlhttp = new XMLHttpRequest();
+        const xmlhttp = new XMLHttpRequest();
 
         xmlhttp.open("POST", this.apiLocation + "/start_simulation");
         xmlhttp.setRequestHeader("Content-type", "application/json");
@@ -599,10 +598,9 @@ export default {
       //       we get to post our HTTP request.
 
       this.$nextTick(() => {
-        let xmlhttp = new XMLHttpRequest();
+        const xmlhttp = new XMLHttpRequest();
 
         xmlhttp.open("GET", this.apiLocation + "/simulation_ui_file/" + this.id);
-        xmlhttp.setRequestHeader("Content-type", "application/json");
         xmlhttp.onreadystatechange = () => {
           if (xmlhttp.readyState === 4) {
             this.showUserMessage = false;
