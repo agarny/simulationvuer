@@ -213,6 +213,28 @@ export default {
       const opencorData = this.opencorData();
       const modelUrl = opencorData.model_url;
       const document = new this.libopencor.SedDocument(fileManager.file(modelUrl));
+
+      // Customise the ending point and point interval of the simulation, if
+      // needed.
+
+      const jsonConfig = opencorData.json_config;
+      const simulationConfig = (jsonConfig !== undefined) ? jsonConfig.simulation : undefined;
+
+      if (simulationConfig !== undefined) {
+        const simulation = document.simulations().get(0);
+        const ENDING_POINT = "Ending point";
+        const outputEndTime = ENDING_POINT in simulationConfig ?
+                                  simulationConfig[ENDING_POINT] :
+                                  simulation.outputEndTime();
+        const POINT_INTERVAL = "Point interval";
+        const numberOfSteps = POINT_INTERVAL in simulationConfig ?
+                                  outputEndTime / simulationConfig[POINT_INTERVAL] :
+                                  simulation.numberOfSteps();
+
+        simulation.setOutputEndTime(outputEndTime);
+        simulation.setNumberOfSteps(numberOfSteps);
+      }
+
       const instance = document.instantiate();
 
       instance.run();
