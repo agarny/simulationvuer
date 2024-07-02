@@ -246,10 +246,42 @@ export default {
 
       instance.run();
 
-      const instanceTask = instance.tasks().get(0);
+      // Retrieve the simulation results.
 
-      console.log(opencorData);
-      console.log(`>>> VOI: ${instanceTask.voiName()} [${instanceTask.voiUnit()}]`);
+      const outputConfig = (jsonConfig !== undefined) ? jsonConfig.output : undefined;
+
+      if (outputConfig !== undefined) {
+        let res = {};
+        const instanceTask = instance.tasks().get(0);
+
+        for (const output of outputConfig) {
+          if (output === instanceTask.voiName()) {
+            res[output] = instanceTask.voiAsArray();
+          }
+
+          if (res[output] === undefined) {
+            for (let i = 0; i < instanceTask.stateCount(); ++i) {
+              if (output === instanceTask.stateName(i)) {
+                res[output] = instanceTask.stateAsArray(i);
+
+                break;
+              }
+            }
+          }
+
+          if (res[output] === undefined) {
+            for (let i = 0; instanceTask.variableCount(); ++i) {
+              if (output === instanceTask.variableName(i)) {
+                res[output] = instanceTask.variableAsArray(i);
+
+                break;
+              }
+            }
+          }
+        }
+
+        this.processSimulationResults(res);
+      }
 
       document.delete();
     },
