@@ -125,7 +125,7 @@ export default {
       isMounted: false,
       isSimulationValid: true,
       layout: [],
-      libopencor: null,
+      libopencor: undefined,
       name: null,
       opencorBasedSimulation: true,
       perfectScollbarOptions: {
