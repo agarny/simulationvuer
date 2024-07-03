@@ -284,6 +284,8 @@ export default {
       }
 
       document.delete();
+
+      this.showUserMessage = false;
     },
     /**
      * @vuese
@@ -322,7 +324,7 @@ export default {
       // Load libOpenCOR, if needed, before doing anything else.
 
       if (this.opencorBasedSimulation && (this.preferredSolver === LIBOPENCOR_SOLVER)) {
-        this.userMessage = "Retrieving the model...";
+        this.userMessage = "Retrieving and computing the model...";
         this.showUserMessage = true;
         // Note: we use this.$nextTick() so that the user message is shown
         //       before we download the model file.
@@ -350,8 +352,6 @@ export default {
                 this.downloadPmrFile(cellmlUrl).then((cellmlFileContents) => {
                   this.manageFile(cellmlUrl, cellmlFileContents);
 
-                  this.showUserMessage = false;
-
                   this.$nextTick(() => {
                     this.runSimulation();
                   });
@@ -359,8 +359,6 @@ export default {
 
                 document.delete();
               } else {
-                this.showUserMessage = false;
-
                 this.$nextTick(() => {
                   this.runSimulation();
                 });
