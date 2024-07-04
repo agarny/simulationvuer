@@ -211,8 +211,7 @@ export default {
     runSimulation() {
       const fileManager = this.libopencor.FileManager.instance();
       const opencorData = this.opencorData();
-      const modelUrl = opencorData.model_url;
-      const document = new this.libopencor.SedDocument(fileManager.file(modelUrl));
+      const document = new this.libopencor.SedDocument(fileManager.file(opencorData.model_url));
 
       // Customise the ending point and point interval of the simulation, if
       // needed.
