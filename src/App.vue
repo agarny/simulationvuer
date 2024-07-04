@@ -44,7 +44,7 @@ export default {
         { id: 308, description: "Kember Cardiac Nerve Model", },
         { id: 318, description: "Multi-scale rabbit cardiac electrophysiology models", },
         { id: 320, description: "Multi-scale human cardiac electrophysiology models", },
-        { id: "workspace/b7c/rawfile/c7afa067a84b83044276d3416f81dbc7130ba66c/isan.omex", description: "Example of a COMBINE archive with a simulation UI file", },
+        { id: "workspace/b7c/rawfile/da25975667a6bfebacd11125428fa5e31f43a0b1/isan.omex", description: "Example of a COMBINE archive with a simulation UI file", },
       ],
       id: 0,
       ready: [],
