@@ -1,7 +1,7 @@
 import { Validator } from "jsonschema";
 import { OPENCOR_SOLVER_NAME } from "./common.js";
 
-export function validJson(json) {
+export function validJson(json, simulationInfoNeeded) {
   // Check the JSON against our schema.
 
   let validator = new Validator();
@@ -214,7 +214,7 @@ export function validJson(json) {
             type: "array",
           },
         },
-        required: true,
+        required: simulationInfoNeeded,
         type: "object",
       },
     },
@@ -436,85 +436,87 @@ export function validJson(json) {
 
   // Make sure that the simulation information makes sense.
 
-  let needOpencorSettings = false;
+  if (simulationInfoNeeded) {
+    let needOpencorSettings = false;
 
-  if (!json.simulation.solvers.every((solver) => {
-    if (solver.if !== undefined) {
-      if (solver.if === "") {
-        console.warn("JSON: a simulation solver if must not be empty.");
+    if (!json.simulation.solvers.every((solver) => {
+      if (solver.if !== undefined) {
+        if (solver.if === "") {
+          console.warn("JSON: a simulation solver if must not be empty.");
 
-        return false;
-      }
-    }
-
-    if (solver.input !== undefined) {
-      if (solver.input.name === "") {
-        console.warn("JSON: a simulation solver input name must not be empty.");
-
-        return false;
+          return false;
+        }
       }
 
-      if (solver.input.value === "") {
-        console.warn("JSON: a simulation solver input value must not be empty.");
-
-        return false;
-      }
-    }
-
-    if (solver.name === "") {
-      console.warn("JSON: a simulation solver name must not be empty.");
-
-      return false;
-    }
-
-    needOpencorSettings = needOpencorSettings || (solver.name === OPENCOR_SOLVER_NAME);
-
-    if (solver.version === "") {
-      console.warn("JSON: a simulation solver version must not be empty.");
-
-      return false;
-    }
-
-    return true;
-  })) {
-    return false;
-  }
-
-  if (needOpencorSettings && (json.simulation.opencor === undefined)) {
-    console.warn("JSON: the simulation solver for OpenCOR is specified so simulation OpenCOR settings must also be specified.");
-
-    return false;
-  }
-
-  if (json.simulation.opencor !== undefined) {
-    if (json.simulation.opencor.resource === "") {
-      console.warn("JSON: the simulation OpenCOR resource must not be empty.");
-
-      return false;
-    }
-
-    if (json.simulation.opencor.endingPoint !== undefined) {
-      if (json.simulation.opencor.pointInterval !== undefined) {
-        if (json.simulation.opencor.endingPoint <= 0.0) {
-          console.warn("JSON: the simulation OpenCOR ending point (" + json.simulation.opencor.endingPoint + ") must be greater than zero.");
+      if (solver.input !== undefined) {
+        if (solver.input.name === "") {
+          console.warn("JSON: a simulation solver input name must not be empty.");
 
           return false;
         }
 
-        if (json.simulation.opencor.pointInterval <= 0.0) {
-          console.warn("JSON: the simulation OpenCOR point interval (" + json.simulation.opencor.pointInterval + ") must be greater than zero.");
+        if (solver.input.value === "") {
+          console.warn("JSON: a simulation solver input value must not be empty.");
 
           return false;
         }
-      } else {
-        console.warn("JSON: a simulation OpenCOR ending point is specified so a simulation OpenCOR point interval must also be specified.");
+      }
+
+      if (solver.name === "") {
+        console.warn("JSON: a simulation solver name must not be empty.");
 
         return false;
       }
-    } else if (json.simulation.opencor.pointInterval !== undefined) {
-      console.warn("JSON: a simulation OpenCOR point interval is specified so a simulation OpenCOR ending point must also be specified.");
+
+      needOpencorSettings = needOpencorSettings || (solver.name === OPENCOR_SOLVER_NAME);
+
+      if (solver.version === "") {
+        console.warn("JSON: a simulation solver version must not be empty.");
+
+        return false;
+      }
+
+      return true;
+    })) {
+      return false;
+    }
+
+    if (needOpencorSettings && (json.simulation.opencor === undefined)) {
+      console.warn("JSON: the simulation solver for OpenCOR is specified so simulation OpenCOR settings must also be specified.");
 
       return false;
+    }
+
+    if (json.simulation.opencor !== undefined) {
+      if (json.simulation.opencor.resource === "") {
+        console.warn("JSON: the simulation OpenCOR resource must not be empty.");
+
+        return false;
+      }
+
+      if (json.simulation.opencor.endingPoint !== undefined) {
+        if (json.simulation.opencor.pointInterval !== undefined) {
+          if (json.simulation.opencor.endingPoint <= 0.0) {
+            console.warn("JSON: the simulation OpenCOR ending point (" + json.simulation.opencor.endingPoint + ") must be greater than zero.");
+
+            return false;
+          }
+
+          if (json.simulation.opencor.pointInterval <= 0.0) {
+            console.warn("JSON: the simulation OpenCOR point interval (" + json.simulation.opencor.pointInterval + ") must be greater than zero.");
+
+            return false;
+          }
+        } else {
+          console.warn("JSON: a simulation OpenCOR ending point is specified so a simulation OpenCOR point interval must also be specified.");
+
+          return false;
+        }
+      } else if (json.simulation.opencor.pointInterval !== undefined) {
+        console.warn("JSON: a simulation OpenCOR point interval is specified so a simulation OpenCOR ending point must also be specified.");
+
+        return false;
+      }
     }
   }
 
