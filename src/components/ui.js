@@ -83,7 +83,12 @@ export function updateUi(parent) {
     });
 
     if (parent.libopencor !== undefined) {
-      parent.runSimulation();
+      parent.userMessage = "Rerunning the model...";
+      parent.showUserMessage = true;
+
+      parent.$nextTick(() => {
+        parent.runSimulation();
+      });
     }
   });
 }

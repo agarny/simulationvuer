@@ -55,6 +55,7 @@ import { evaluateValue, evaluateSimulationValue, OPENCOR_SOLVER_NAME, PMR_URL } 
 import { validJson } from "./json.js";
 import { initialiseUi, finaliseUi } from "./ui.js";
 import libOpenCOR from "./libopencor.js";
+import { toRaw } from "vue";
 
 const LIBOPENCOR_SOLVER = "libOpenCOR";
 const OSPARC_SOLVER = "oSPARC";
@@ -120,14 +121,17 @@ export default {
 
     return {
       errorMessage: "",
+      fileManager: undefined,
       hasFinalisedUi: false,
       hasValidSimulationUiInfo: false,
+      instance: undefined,
       isMounted: false,
       isSimulationValid: true,
       layout: [],
       libopencor: undefined,
       name: null,
       opencorBasedSimulation: true,
+      output: undefined,
       perfectScollbarOptions: {
         suppressScrollX: true,
       },
@@ -186,8 +190,7 @@ export default {
      * @arg `fileContents`
      */
     manageFile(url, fileContents) {
-      const fileManager = this.libopencor.FileManager.instance();
-      let file = fileManager.file(url);
+      let file = toRaw(this.fileManager).file(url);
 
       if (!file) {
         file = new this.libopencor.File(url);
@@ -209,37 +212,34 @@ export default {
      * Run the simulation using libOpenCOR.
      */
     runSimulation() {
-      const fileManager = this.libopencor.FileManager.instance();
-      const opencorData = this.opencorData();
-      const document = new this.libopencor.SedDocument(fileManager.file(opencorData.model_url));
+      if (this.instance === undefined) {
+        const document = new this.libopencor.SedDocument(toRaw(this.fileManager).file(this.simulationUiInfo.simulation.opencor.resource));
 
-      // Customise the ending point and point interval of the simulation, if
-      // needed.
+        // Customise the ending point and point interval of the simulation, if
+        // needed.
 
-      const jsonConfig = opencorData.json_config;
-      const simulationConfig = (jsonConfig !== undefined) ? jsonConfig.simulation : undefined;
+        if (   (this.simulationUiInfo.simulation.opencor.endingPoint !== undefined)
+            && (this.simulationUiInfo.simulation.opencor.pointInterval !== undefined)) {
+          const simulation = document.simulations().get(0);
 
-      if (simulationConfig !== undefined) {
-        const simulation = document.simulations().get(0);
-        const ENDING_POINT = "Ending point";
-        const outputEndTime = ENDING_POINT in simulationConfig ?
-                                  simulationConfig[ENDING_POINT] :
-                                  simulation.outputEndTime();
-        const POINT_INTERVAL = "Point interval";
-        const numberOfSteps = POINT_INTERVAL in simulationConfig ?
-                                  outputEndTime / simulationConfig[POINT_INTERVAL] :
-                                  simulation.numberOfSteps();
+          simulation.setOutputEndTime(this.simulationUiInfo.simulation.opencor.endingPoint);
+          simulation.setNumberOfSteps(this.simulationUiInfo.simulation.opencor.endingPoint / this.simulationUiInfo.simulation.opencor.pointInterval);
+        }
 
-        simulation.setOutputEndTime(outputEndTime);
-        simulation.setNumberOfSteps(numberOfSteps);
+        // Retrieve an instance of the model.
+
+        this.instance = document.instantiate();
+
+        document.delete();
       }
 
       // Run the simulation after passing some initial conditions to it, if any.
 
-      const instance = document.instantiate();
-      const parametersConfig = (jsonConfig !== undefined) ? jsonConfig.parameters : undefined;
+      const instance = toRaw(this.instance);
 
-      for (const [parameter, value] of Object.entries(parametersConfig)) {
+      instance.removeAllInitialConditions();
+
+      for (const [parameter, value] of Object.entries(this.parametersData())) {
         instance.addInitialCondition(parameter, value);
       }
 
@@ -247,42 +247,36 @@ export default {
 
       // Retrieve the simulation results.
 
-      const outputConfig = (jsonConfig !== undefined) ? jsonConfig.output : undefined;
+      let res = {};
+      const instanceTask = instance.tasks().get(0);
 
-      if (outputConfig !== undefined) {
-        let res = {};
-        const instanceTask = instance.tasks().get(0);
+      for (const output of this.outputData()) {
+        if (output === instanceTask.voiName()) {
+          res[output] = instanceTask.voiAsArray();
+        }
 
-        for (const output of outputConfig) {
-          if (output === instanceTask.voiName()) {
-            res[output] = instanceTask.voiAsArray();
-          }
+        if (res[output] === undefined) {
+          for (let i = 0; i < instanceTask.stateCount(); ++i) {
+            if (output === instanceTask.stateName(i)) {
+              res[output] = instanceTask.stateAsArray(i);
 
-          if (res[output] === undefined) {
-            for (let i = 0; i < instanceTask.stateCount(); ++i) {
-              if (output === instanceTask.stateName(i)) {
-                res[output] = instanceTask.stateAsArray(i);
-
-                break;
-              }
-            }
-          }
-
-          if (res[output] === undefined) {
-            for (let i = 0; instanceTask.variableCount(); ++i) {
-              if (output === instanceTask.variableName(i)) {
-                res[output] = instanceTask.variableAsArray(i);
-
-                break;
-              }
+              break;
             }
           }
         }
 
-        this.processSimulationResults(res);
+        if (res[output] === undefined) {
+          for (let i = 0; instanceTask.variableCount(); ++i) {
+            if (output === instanceTask.variableName(i)) {
+              res[output] = instanceTask.variableAsArray(i);
+
+              break;
+            }
+          }
+        }
       }
 
-      document.delete();
+      this.processSimulationResults(res);
 
       this.showUserMessage = false;
     },
@@ -323,20 +317,21 @@ export default {
       // Load libOpenCOR, if needed, before doing anything else.
 
       if (this.opencorBasedSimulation && (this.preferredSolver === LIBOPENCOR_SOLVER)) {
-        this.userMessage = "Retrieving and computing the model...";
+        this.userMessage = "Retrieving and running the model...";
         this.showUserMessage = true;
         // Note: we use this.$nextTick() so that the user message is shown
         //       before we download the model file.
 
         this.$nextTick(() => {
           libOpenCOR().then((libopencor) => {
-            // Keep track of the libOpenCOR module.
+            // Keep track of the libOpenCOR module and its file manager.
 
             this.libopencor = libopencor;
+            this.fileManager = this.libopencor.FileManager.instance();
 
             // Retrieve the model file, if needed.
 
-            const modelUrl = this.opencorData().model_url;
+            const modelUrl = this.simulationUiInfo.simulation.opencor.resource;
 
             this.downloadPmrFile(modelUrl).then((fileContents) => {
               const file = this.manageFile(modelUrl, fileContents);
@@ -351,16 +346,12 @@ export default {
                 this.downloadPmrFile(cellmlUrl).then((cellmlFileContents) => {
                   this.manageFile(cellmlUrl, cellmlFileContents);
 
-                  this.$nextTick(() => {
-                    this.runSimulation();
-                  });
+                  this.runSimulation();
                 });
 
                 document.delete();
               } else {
-                this.$nextTick(() => {
-                  this.runSimulation();
-                });
+                this.runSimulation();
               }
             });
           });
@@ -426,66 +417,20 @@ export default {
      * @vuese
      * Data needed to specify the model output.
      */
-    outputData() {
-      let res = undefined;
+     outputData() {
+      if (this.output === undefined) {
+        if (this.simulationUiInfo.output.data !== undefined)  {
+          let index = -1;
 
-      if (this.simulationUiInfo.output.data !== undefined)  {
-        let index = -1;
+          this.output = [];
 
-        res = [];
-
-        this.simulationUiInfo.output.data.forEach((outputData) => {
-          res[++index] = outputData.name;
-        });
+          this.simulationUiInfo.output.data.forEach((output) => {
+            this.output[++index] = output.name;
+          });
+        }
       }
 
-      return res;
-    },
-    /**
-     * @vuese
-     * Data needed to run an OpenCOR-based simulation.
-     */
-    opencorData() {
-      let res = {
-        model_url: this.simulationUiInfo.simulation.opencor.resource,
-        json_config: {},
-      };
-
-      if (   (this.simulationUiInfo.simulation.opencor.endingPoint !== undefined)
-          && (this.simulationUiInfo.simulation.opencor.pointInterval !== undefined)) {
-        res.json_config.simulation = {
-          "Ending point": this.simulationUiInfo.simulation.opencor.endingPoint,
-          "Point interval": this.simulationUiInfo.simulation.opencor.pointInterval,
-        };
-      }
-
-      let parameters = this.parametersData();
-
-      if (parameters !== undefined) {
-        res.json_config.parameters = parameters;
-      }
-
-      let output = this.outputData();
-
-      if (output !== undefined) {
-        res.json_config.output = output;
-      }
-
-      return res;
-    },
-    /**
-     * @vuese
-     * Data needed to run an oSPARC-based simulation.
-     */
-    osparcData() {
-      let res = {};
-      let parameters = this.parametersData();
-
-      if (parameters !== undefined) {
-        res.job_inputs = parameters;
-      }
-
-      return res;
+      return this.output;
     },
     /**
      * @vuese
@@ -497,9 +442,38 @@ export default {
       };
 
       if (this.opencorBasedSimulation) {
-        request.opencor = this.opencorData();
+        request.opencor = {
+          model_url: this.simulationUiInfo.simulation.opencor.resource,
+          json_config: {},
+        };
+
+        if (   (this.simulationUiInfo.simulation.opencor.endingPoint !== undefined)
+            && (this.simulationUiInfo.simulation.opencor.pointInterval !== undefined)) {
+          request.opencor.json_config.simulation = {
+            "Ending point": this.simulationUiInfo.simulation.opencor.endingPoint,
+            "Point interval": this.simulationUiInfo.simulation.opencor.pointInterval,
+          };
+        }
+
+        const parameters = this.parametersData();
+
+        if (parameters !== undefined) {
+          request.opencor.json_config.parameters = parameters;
+        }
+
+        const output = this.outputData();
+
+        if (output !== undefined) {
+          request.opencor.json_config.output = output;
+        }
       } else {
-        request.osparc = this.osparcData();
+        request.osparc = {};
+
+        const parameters = this.parametersData();
+
+        if (parameters !== undefined) {
+          request.osparc.job_inputs = parameters;
+        }
       }
 
       return request;
