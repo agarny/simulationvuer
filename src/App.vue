@@ -16,7 +16,7 @@
           <strong>ISAN:</strong> {{ dataset.description }} {{ typeof dataset.id }}
         </span>
         <hr />
-        <SimulationVuer :apiLocation="apiLocation" :id="dataset.id" :preferredSolver="preferredSolver" />
+        <SimulationVuer :apiLocation="apiLocation" :id="dataset.id" :preferredSolver="preferredSolver" style="height: 640px;" />
       </div>
     </div>
     <hr />
