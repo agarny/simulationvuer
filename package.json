@@ -13,10 +13,11 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "@abi-software/plotvuer": "^1.0.0",
+    "@arction/lcjs": "^4.2.1",
     "element-plus": "^2.5.3",
     "jsonschema": "^1.4.0",
     "unplugin-vue-components": "^0.26.0",
+    "vite-plugin-node-polyfills": "^0.22.0",
     "vue": "^3.4.15"
   },
   "devDependencies": {

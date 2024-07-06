@@ -33,13 +33,11 @@
         <p class="default note" v-if="uuid">Additional parameters are available on oSPARC</p>
       </div>
       <div class="main-right" ref="output" v-show="isSimulationValid">
-        <PlotVuer v-for="(outputPlot, index) in simulationUiInfo.output.plots"
-          :key="`output-${index}`"
-          :metadata="plotMetadata(index)"
-          :data-source="{data: simulationResults[index]}"
-          :plotLayout="layout[index]"
-          :plotType="'plotly-only'"
-          :selectorUi="false"
+        <Chart v-for="(outputPlot, index) in simulationUiInfo.output.plots"
+          :xData="this.xSimulationResults[index]"
+          :yData="this.ySimulationResults[index]"
+          :xAxisTitle="outputPlot.xAxisTitle"
+          :yAxisTitle="outputPlot.yAxisTitle"
         />
       </div>
       <div class="main-right" v-show="!isSimulationValid">
@@ -50,14 +48,13 @@
 </template>
 
 <script>
-import { PlotVuer } from "@abi-software/plotvuer";
-import "@abi-software/plotvuer/dist/style.css";
 import SimulationVuerInput from "./SimulationVuerInput.vue";
 import { ElButton, ElDivider, ElLoading } from "element-plus";
 import { evaluateValue, evaluateSimulationValue, OPENCOR_SOLVER_NAME, PMR_URL } from "./common.js";
 import { validJson } from "./json.js";
 import { initialiseUi, finaliseUi } from "./ui.js";
 import libOpenCOR from "./libopencor.js";
+import Chart from './Chart.vue'
 import { toRaw } from "vue";
 
 const LIBOPENCOR_SOLVER = "libOpenCOR";
@@ -71,7 +68,7 @@ export default {
   OSPARC_SOLVER: OSPARC_SOLVER,
   name: "SimulationVuer",
   components: {
-    PlotVuer,
+    Chart,
     SimulationVuerInput,
     ElButton,
     ElDivider,
@@ -146,6 +143,8 @@ export default {
       userMessage: "",
       ui: null,
       uuid: null,
+      xSimulationResults: [],
+      ySimulationResults: [],
     };
   },
   methods: {
@@ -392,6 +391,9 @@ export default {
             y: [],
             type: "scatter",
           }];
+
+          this.xSimulationResults[index] = [];
+          this.ySimulationResults[index] = [];
         });
       });
     },
@@ -507,7 +509,7 @@ export default {
     /**
      * @vuese
      * Process the simulation results retrieved by `checkSimulation`. The simulation results are post-processed, if
-     * needed, and then readied for use by `PlotVuer`.
+     * needed, and then readied for use by our chart component.
      * @arg `results`
      */
     processSimulationResults(results) {
@@ -546,18 +548,20 @@ export default {
       let iMax = results[this.simulationResultsId[Object.keys(this.simulationResultsId)[0]]].length;
 
       this.simulationUiInfo.output.plots.forEach((outputPlot) => {
-        let xValue = [];
-        let yValue = [];
+        ++index;
+
+        this.xSimulationResults[index] = [];
+        this.ySimulationResults[index] = [];
 
         for (let i = 0; i < iMax; ++i) {
-          xValue[i] = evaluateSimulationValue(this, results, outputPlot.xValue, i);
-          yValue[i] = evaluateSimulationValue(this, results, outputPlot.yValue, i);
+          this.xSimulationResults[index][i] = evaluateSimulationValue(this, results, outputPlot.xValue, i);
+          this.ySimulationResults[index][i] = evaluateSimulationValue(this, results, outputPlot.yValue, i);
         }
 
-        this.simulationResults[++index] = [
+        this.simulationResults[index] = [
           {
-            x: xValue,
-            y: yValue,
+            x: this.xSimulationResults[index],
+            y: this.ySimulationResults[index],
             type: "scatter",
           },
         ];
@@ -628,6 +632,9 @@ export default {
 
       this.$nextTick(() => {
         this.simulationResults = [];
+
+        this.xSimulationResults = [];
+        this.ySimulationResults = [];
 
         const xmlhttp = new XMLHttpRequest();
 

@@ -56,7 +56,7 @@ export function finaliseUi(parent) {
   // and we have some valid simulation UI information.
 
   if (!parent.hasFinalisedUi && parent.isMounted && parent.hasValidSimulationUiInfo) {
-    // Configure the PlotVuer's.
+    // Configure the charts.
 
     parent.$refs.output.classList.add("x" + parent.simulationUiInfo.output.plots.length);
 
