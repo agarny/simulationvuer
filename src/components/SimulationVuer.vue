@@ -136,15 +136,14 @@ export default {
       },
       pmrBasedCombineArchive: false,
       showUserMessage: false,
-      simulationResults: [],
       simulationResultsId: {},
       simulationUiInfo: {},
       solver: undefined,
       userMessage: "",
       ui: null,
       uuid: null,
-      xSimulationResults: [],
-      ySimulationResults: [],
+      xSimulationResults: {},
+      ySimulationResults: {},
     };
   },
   methods: {
@@ -384,17 +383,6 @@ export default {
 
       this.$nextTick(() => {
         finaliseUi(this);
-
-        this.simulationResults.forEach((data, index) => {
-          this.simulationResults[index] = [{
-            x: [],
-            y: [],
-            type: "scatter",
-          }];
-
-          this.xSimulationResults[index] = [];
-          this.ySimulationResults[index] = [];
-        });
       });
     },
     /**
@@ -557,14 +545,6 @@ export default {
           this.xSimulationResults[index][i] = evaluateSimulationValue(this, results, outputPlot.xValue, i);
           this.ySimulationResults[index][i] = evaluateSimulationValue(this, results, outputPlot.yValue, i);
         }
-
-        this.simulationResults[index] = [
-          {
-            x: this.xSimulationResults[index],
-            y: this.ySimulationResults[index],
-            type: "scatter",
-          },
-        ];
       });
     },
     /**
@@ -631,8 +611,6 @@ export default {
       this.showUserMessage = true;
 
       this.$nextTick(() => {
-        this.simulationResults = [];
-
         this.xSimulationResults = [];
         this.ySimulationResults = [];
 

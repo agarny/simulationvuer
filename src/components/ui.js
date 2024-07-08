@@ -46,8 +46,6 @@ export function initialiseUi(parent) {
         },
       },
     };
-
-    parent.simulationResults[index] = [{}];
   });
 }
 
@@ -60,6 +58,17 @@ export function finaliseUi(parent) {
 
     parent.$refs.output.classList.add("x" + parent.simulationUiInfo.output.plots.length);
 
+    // Initialise the simulation results.
+
+    let index = -1;
+
+    parent.simulationUiInfo.output.plots.forEach(() => {
+      ++index;
+
+      parent.xSimulationResults[index] = [];
+      parent.ySimulationResults[index] = [];
+    });
+
     // Make sure that our UI is up to date.
 
     updateUi(parent);
@@ -70,8 +79,6 @@ export function finaliseUi(parent) {
 
 export function updateUi(parent) {
   // Show/hide and enable/disable all the elements.
-  // Note: we do this using $nextTick() to ensure that the UI has been fully
-  //       mounted.
 
   parent.$nextTick(() => {
     let index = -1;
