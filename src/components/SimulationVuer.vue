@@ -142,7 +142,7 @@ export default {
       },
       pmrBasedCombineArchive: false,
       showUserMessage: false,
-      simulationResults: [],
+      simulationResults: {},
       simulationResultsId: {},
       simulationUiInfo: {},
       solver: undefined,
@@ -422,8 +422,6 @@ export default {
             },
           },
         };
-
-        this.simulationResults[index] = [{}];
       });
 
       // Finalise our UI.
@@ -433,14 +431,6 @@ export default {
 
       this.$nextTick(() => {
         finaliseUi(this);
-
-        this.simulationResults.forEach((data, index) => {
-          this.simulationResults[index] = [{
-            x: [],
-            y: [],
-            type: "scatter",
-          }];
-        });
       });
     },
     /**
@@ -657,7 +647,7 @@ export default {
       this.showUserMessage = true;
 
       this.$nextTick(() => {
-        this.simulationResults = [];
+        this.simulationResults = {};
 
         const xmlhttp = new XMLHttpRequest();
 
