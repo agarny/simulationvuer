@@ -13,7 +13,7 @@
 
 <script>
 import { ElInputNumber, ElOption, ElSelect, ElSlider } from "element-plus";
-import { updateUi } from "./ui.js";
+import { updateUi } from "./common.js";
 
 export default {
   name: "SimulationVuerInput",

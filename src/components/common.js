@@ -1,32 +1,70 @@
-export const PMR_URL = "https://models.physiomeproject.org/";
+import { create, all } from "mathjs";
+
+const math = create(all, {});
+
 export const OPENCOR_SOLVER_NAME = "simcore/services/comp/opencor";
-
-function doEvaluateValue(value, from, to) {
-  if (from !== undefined) {
-    let re = new RegExp(`\\b${ from }\\b`, 'g');
-
-    value = value.replace(re, to);
-  }
-
-  return value;
-}
 
 export function evaluateValue(parent, value) {
   let index = -1;
+  const parser = new math.parser();
 
   parent.simulationUiInfo.input.forEach((input) => {
     ++index;
 
-    value = doEvaluateValue(value, input.id, parent.$refs.simInput[index].vModel);
+    parser.set(input.id, parent.$refs.simInput[index].vModel);
   });
 
-  return Function("return " + value + ";")();
+  value = value.replace("===", "=="); //---GRY--- TO BE REMOVED ONCE DATASET 135 HAS BEEN FIXED.
+  return parser.evaluate(value);
 }
 
-export function evaluateSimulationValue(parent, results, value, i) {
-  parent.simulationUiInfo.output.data.forEach((data) => {
-    value = doEvaluateValue(value, data.id, results[parent.simulationResultsId[data.id]][i]);
-  });
+export function updateUi(parent) {
+  // Show/hide and enable/disable all the elements.
 
-  return Function("return " + value + ";")();
+  parent.$nextTick(() => {
+    let index = -1;
+
+    parent.simulationUiInfo.input.forEach((input) => {
+      ++index;
+
+      parent.$refs.simInput[index].visible = (input.visible === undefined) ? true : evaluateValue(parent, input.visible);
+    });
+
+    if (parent.libopencor !== undefined) {
+      parent.userMessage = "Rerunning the model...";
+      parent.showUserMessage = true;
+
+      parent.$nextTick(() => {
+        parent.runSimulation();
+      });
+    }
+  });
+}
+
+export function finaliseUi(parent) {
+  // Finalise our UI, but only if we haven't already done so, we are mounted,
+  // and we have some valid simulation UI information.
+
+  if (!parent.hasFinalisedUi && parent.isMounted && parent.hasValidSimulationUiInfo) {
+    // Configure the charts.
+
+    parent.$refs.output.classList.add("x" + parent.simulationUiInfo.output.plots.length);
+
+    // Initialise the simulation results.
+
+    let index = -1;
+
+    parent.simulationUiInfo.output.plots.forEach(() => {
+      ++index;
+
+      parent.xSimulationResults[index] = [];
+      parent.ySimulationResults[index] = [];
+    });
+
+    // Make sure that our UI is up to date.
+
+    updateUi(parent);
+
+    parent.hasFinalisedUi = true;
+  }
 }

@@ -50,15 +50,18 @@
 <script>
 import SimulationVuerInput from "./SimulationVuerInput.vue";
 import { ElButton, ElDivider, ElLoading } from "element-plus";
-import { evaluateValue, evaluateSimulationValue, OPENCOR_SOLVER_NAME, PMR_URL } from "./common.js";
+import { evaluateValue, finaliseUi, OPENCOR_SOLVER_NAME } from "./common.js";
 import { validJson } from "./json.js";
-import { initialiseUi, finaliseUi } from "./ui.js";
 import libOpenCOR from "./libopencor.js";
 import Chart from './Chart.vue'
 import { toRaw } from "vue";
+import { create, all } from "mathjs";
 
 const LIBOPENCOR_SOLVER = "libOpenCOR";
 const OSPARC_SOLVER = "oSPARC";
+const PMR_URL = "https://models.physiomeproject.org/";
+
+const math = create(all, {});
 
 /**
  * SimulationVuer
@@ -108,7 +111,7 @@ export default {
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
           if (xmlhttp.status === 200) {
-            let datasetInfo = JSON.parse(xmlhttp.responseText);
+            const datasetInfo = JSON.parse(xmlhttp.responseText);
 
             this.name = datasetInfo.name;
             this.uuid = (datasetInfo.study !== undefined)?datasetInfo.study.uuid:undefined;
@@ -194,7 +197,7 @@ export default {
     manageFile(url, fileContents) {
       let file = toRaw(this.fileManager).file(url);
 
-      if (!file) {
+      if (file === null) {
         file = new this.libopencor.File(url);
       }
 
@@ -251,7 +254,7 @@ export default {
 
       // Retrieve the simulation results.
 
-      let res = {};
+      const res = {};
       const instanceTask = instance.tasks().get(0);
 
       for (const output of this.outputData()) {
@@ -374,7 +377,50 @@ export default {
 
       // Initialise our UI.
 
-      initialiseUi(this);
+      this.simulationUiInfo.output.data.forEach((data) => {
+        this.simulationResultsId[data.id] = data.name;
+      });
+
+      let index = -1;
+
+      this.simulationUiInfo.output.plots.forEach((outputPlot) => {
+        ++index;
+
+        this.layout[index] = {
+          paper_bgcolor: "rgba(0, 0, 0, 0)",
+          plot_bgcolor: "rgba(0, 0, 0, 0)",
+          autosize: true,
+          margin: {
+            t: 25,
+            l: 55,
+            r: 25,
+            b: 30,
+            pad: 4,
+          },
+          loading: false,
+          options: {
+            responsive: true,
+            scrollZoom: true,
+          },
+          dragmode: "pan",
+          xaxis: {
+            title: {
+              text: outputPlot.xAxisTitle,
+              font: {
+                size: 10,
+              },
+            },
+          },
+          yaxis: {
+            title: {
+              text: outputPlot.yAxisTitle,
+              font: {
+                size: 10,
+              },
+            },
+          },
+        };
+      });
 
       // Finalise our UI.
       // Note: we try both here and in the mounted() function since we have no
@@ -417,15 +463,11 @@ export default {
      * Data needed to set a model's parameters.
      */
     parametersData() {
-      let res = undefined;
+      const res = {};
 
-      if (this.simulationUiInfo.parameters !== undefined) {
-        res = {};
-
-        this.simulationUiInfo.parameters.forEach((parameter) => {
-          res[parameter.name] = evaluateValue(this, parameter.value);
-        });
-      }
+      this.simulationUiInfo.parameters.forEach((parameter) => {
+        res[parameter.name] = evaluateValue(this, parameter.value);
+      });
 
       return res;
     },
@@ -436,12 +478,10 @@ export default {
      outputData() {
       if (this.output === undefined) {
         if (this.simulationUiInfo.output.data !== undefined)  {
-          let index = -1;
-
           this.output = [];
 
           this.simulationUiInfo.output.data.forEach((output) => {
-            this.output[++index] = output.name;
+            this.output.push(output.name);
           });
         }
       }
@@ -453,7 +493,7 @@ export default {
      * Create the `request` that is going to be used by `startSimulation` to ask oSPARC to start the simulation.
      */
     retrieveRequest() {
-      let request = {
+      const request = {
         solver: this.solver
       };
 
@@ -471,11 +511,7 @@ export default {
           };
         }
 
-        const parameters = this.parametersData();
-
-        if (parameters !== undefined) {
-          request.opencor.json_config.parameters = parameters;
-        }
+        request.opencor.json_config.parameters = this.parametersData();
 
         const output = this.outputData();
 
@@ -485,11 +521,7 @@ export default {
       } else {
         request.osparc = {};
 
-        const parameters = this.parametersData();
-
-        if (parameters !== undefined) {
-          request.osparc.job_inputs = parameters;
-        }
+        request.osparc.job_inputs = this.parametersData();
       }
 
       return request;
@@ -506,9 +538,8 @@ export default {
 
       if (typeof(results) === "string") {
         const SPACES = /[ \t]+/g;
-
-        let lines = results.trim().split("\n");
-        let iMax = lines[0].trim().split(SPACES).length;
+        const lines = results.trim().split("\n");
+        const iMax = lines[0].trim().split(SPACES).length;
 
         results = {};
 
@@ -522,7 +553,7 @@ export default {
           ++i;
 
           let j = -1;
-          let values = line.trim().split(SPACES);
+          const values = line.trim().split(SPACES);
 
           values.forEach((value) => {
             results[++j][i] = Number(value);
@@ -532,19 +563,19 @@ export default {
 
       // Get the results ready for plotting.
 
+      const parser = new math.parser();
+
+      Object.keys(this.simulationResultsId).forEach((id) => {
+        parser.set(id, results[this.simulationResultsId[id]]);
+      });
+
       let index = -1;
-      let iMax = results[this.simulationResultsId[Object.keys(this.simulationResultsId)[0]]].length;
 
       this.simulationUiInfo.output.plots.forEach((outputPlot) => {
         ++index;
 
-        this.xSimulationResults[index] = [];
-        this.ySimulationResults[index] = [];
-
-        for (let i = 0; i < iMax; ++i) {
-          this.xSimulationResults[index][i] = evaluateSimulationValue(this, results, outputPlot.xValue, i);
-          this.ySimulationResults[index][i] = evaluateSimulationValue(this, results, outputPlot.yValue, i);
-        }
+        this.xSimulationResults[index] = parser.evaluate(outputPlot.xValue);
+        this.ySimulationResults[index] = parser.evaluate(outputPlot.yValue);
       });
     },
     /**
@@ -611,8 +642,8 @@ export default {
       this.showUserMessage = true;
 
       this.$nextTick(() => {
-        this.xSimulationResults = [];
-        this.ySimulationResults = [];
+        this.xSimulationResults = {};
+        this.ySimulationResults = {};
 
         const xmlhttp = new XMLHttpRequest();
 

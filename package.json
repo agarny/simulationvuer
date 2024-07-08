@@ -16,6 +16,7 @@
     "@arction/lcjs": "^4.2.1",
     "element-plus": "^2.5.3",
     "jsonschema": "^1.4.0",
+    "mathjs": "^13.0.2",
     "unplugin-vue-components": "^0.26.0",
     "vite-plugin-node-polyfills": "^0.22.0",
     "vue": "^3.4.15"
