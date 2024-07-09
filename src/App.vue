@@ -13,10 +13,10 @@
           <strong>Dataset <a :href="datasetUrl(dataset.id)" target="_blank">{{ dataset.id }}</a>:</strong> {{ dataset.description }}
         </span>
         <span v-if="typeof dataset.id !== 'number'">
-          <strong>ISAN:</strong> {{ dataset.description }} {{ typeof dataset.id }}
+          <strong>ISAN:</strong> {{ dataset.description }}
         </span>
         <hr />
-        <SimulationVuer :apiLocation="apiLocation" :id="dataset.id" :preferredSolver="dataset.preferredSolver" style="height: 640px;" />
+        <SimulationVuer :apiLocation="apiLocation" :id="dataset.id" style="height: 640px;" />
       </div>
     </div>
     <hr />
@@ -38,16 +38,16 @@ export default {
     return {
       apiLocation: import.meta.env.VITE_API_LOCATION,
       datasets: [
-        { id: 0, label: "0", description: "Non-simulation dataset", preferredSolver: SimulationVuer.OSPARC_SOLVER },
-        { id: 135, label: "135", description: "Computational analysis of the human sinus node action potential - Model development and effects of mutations", preferredSolver: SimulationVuer.OSPARC_SOLVER },
-        { id: 157, label: "157", description: "Fabbri-based composite SAN model", preferredSolver: SimulationVuer.OSPARC_SOLVER },
-        { id: 308, label: "308", description: "Kember Cardiac Nerve Model", preferredSolver: SimulationVuer.OSPARC_SOLVER },
-        { id: 318, label: "318", description: "Multi-scale rabbit cardiac electrophysiology models", preferredSolver: SimulationVuer.OSPARC_SOLVER },
-        { id: 320, label: "320", description: "Multi-scale human cardiac electrophysiology models", preferredSolver: SimulationVuer.OSPARC_SOLVER },
-        { id: "workspace/b7c/rawfile/00e2d3c7774bb66400b5c925e43181d775695417/135.omex", label: "ISAN-135", description: "Example of a COMBINE archive with a simulation UI file", preferredSolver: SimulationVuer.LIBOPENCOR_SOLVER },
-        { id: "workspace/b7c/rawfile/00e2d3c7774bb66400b5c925e43181d775695417/157.omex", label: "ISAN-157", description: "Example of a COMBINE archive with a simulation UI file", preferredSolver: SimulationVuer.LIBOPENCOR_SOLVER },
-        { id: "workspace/b7c/rawfile/00e2d3c7774bb66400b5c925e43181d775695417/lorenz.omex", label: "ISAN-Lorenz", description: "Example of a COMBINE archive with a simulation UI file", preferredSolver: SimulationVuer.LIBOPENCOR_SOLVER },
-        { id: "workspace/b7c/rawfile/00e2d3c7774bb66400b5c925e43181d775695417/tt04.omex", label: "ISAN-TT04", description: "Example of a COMBINE archive with a simulation UI file", preferredSolver: SimulationVuer.LIBOPENCOR_SOLVER },
+        { id: 0, label: "0", description: "Non-simulation dataset" },
+        { id: 135, label: "135", description: "Computational analysis of the human sinus node action potential - Model development and effects of mutations" },
+        { id: 157, label: "157", description: "Fabbri-based composite SAN model" },
+        { id: 308, label: "308", description: "Kember Cardiac Nerve Model" },
+        { id: 318, label: "318", description: "Multi-scale rabbit cardiac electrophysiology models" },
+        { id: 320, label: "320", description: "Multi-scale human cardiac electrophysiology models" },
+        { id: "workspace/b7c/rawfile/00e2d3c7774bb66400b5c925e43181d775695417/135.omex", label: "ISAN-135", description: "COMBINE archive from PMR" },
+        { id: "workspace/b7c/rawfile/00e2d3c7774bb66400b5c925e43181d775695417/157.omex", label: "ISAN-157", description: "COMBINE archive from PMR" },
+        { id: "workspace/b7c/rawfile/00e2d3c7774bb66400b5c925e43181d775695417/lorenz.omex", label: "ISAN-Lorenz", description: "COMBINE archive from PMR" },
+        { id: "workspace/b7c/rawfile/00e2d3c7774bb66400b5c925e43181d775695417/tt04.omex", label: "ISAN-TT04", description: "COMBINE archive from PMR" },
       ],
       id: 0,
       ready: [],
