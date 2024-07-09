@@ -14,7 +14,6 @@ export function evaluateValue(parent, value) {
     parser.set(input.id, parent.$refs.simInput[index].vModel);
   });
 
-  value = value.replace("===", "=="); //---GRY--- TO BE REMOVED ONCE DATASET 135 HAS BEEN FIXED.
   return parser.evaluate(value);
 }
 
