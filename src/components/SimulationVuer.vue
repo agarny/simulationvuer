@@ -1,14 +1,7 @@
 <template>
-  <div
-    class="simulation-vuer"
-    v-loading="showUserMessage"
-    :element-loading-text="userMessage"
-  >
+  <div class="simulation-vuer" v-loading="showUserMessage" :element-loading-text="userMessage">
     <div class="container" v-if="opencorOmexFile === null">
-      <p
-        v-if="!hasValidSimulationUiInfo && !showUserMessage"
-        class="default error"
-      >
+      <p v-if="!hasValidSimulationUiInfo && !showUserMessage" class="default error">
         <span class="error">Error:</span> {{ errorMessage }}.
       </p>
       <div class="main" v-if="hasValidSimulationUiInfo">
@@ -31,23 +24,15 @@
           </div>
           <div class="buttons-container">
             <div class="primary-button">
-              <el-button type="primary" size="small" @click="startSimulation()"
-                >Run Simulation</el-button
-              >
+              <el-button type="primary" size="small" @click="startSimulation()">Run Simulation</el-button>
             </div>
             <div class="secondary-button" v-if="uuid">
-              <el-button size="small" @click="runOnOsparc()"
-                >Run on oSPARC</el-button
-              >
+              <el-button size="small" @click="runOnOsparc()">Run on oSPARC</el-button>
             </div>
             <div class="secondary-button">
-              <el-button size="small" @click="viewDataset()"
-                >View Dataset</el-button
-              >
+              <el-button size="small" @click="viewDataset()">View Dataset</el-button>
             </div>
-            <p class="default note" v-if="uuid">
-              Additional parameters are available on oSPARC
-            </p>
+            <p class="default note" v-if="uuid">Additional parameters are available on oSPARC</p>
           </div>
         </div>
         <div class="main-right" ref="output" v-show="isSimulationValid">
@@ -76,21 +61,36 @@
 </template>
 
 <script setup>
-const emit = defineEmits(['data-ready'])
+import { onMounted, onUnmounted, ref } from 'vue'
+
+const emit = defineEmits(['update-data'])
+
+const activeSubscriptions = ref([])
+let intervalTimer = null
+
+function getMockValue(type, tick) {
+  if (type === 'sine') return Math.sin(tick * 0.1) * 10
+  if (type === 'linear') return tick
+  return Math.random() * 10
+}
+
+function determineAxisAndType(req) {
+  const axis = req.payload.axis !== undefined ? req.payload.axis : req.payload.variable === 'VOI' ? 'x' : 'y'
+  let type = 'random'
+
+  if (req.payload.variable === 'VOI') {
+    type = 'linear'
+  } else if (req.payload.variable && req.payload.variable.includes('v_in')) {
+    type = 'sine'
+  }
+
+  return { axis, type }
+}
 
 function generateMockSeries(type, length = 100) {
   const data = []
   for (let i = 0; i < length; i++) {
-    if (type === 'sine') {
-      // Smooth curve.
-      data.push(Math.sin(i * 0.1) * 10)
-    } else if (type === 'linear') {
-      // Linear increase.
-      data.push(i)
-    } else {
-      // Random noise.
-      data.push(Math.random() * 10)
-    }
+    data.push(getMockValue(type, i))
   }
   return data
 }
@@ -101,13 +101,12 @@ function getData(requests) {
     return {}
   }
 
-  const response = {}
+  const response = { payload: {} }
   const EXPECTED_ID = 'nz.ac.auckland.simulation-data-request'
   const EXPECTED_MAJOR_VERSION = 0
 
+  const validRequests = []
   requests.forEach((req, index) => {
-    // --- VALIDATION BLOCK ---
-
     // Check request is expected type.
     if (req.id !== EXPECTED_ID) {
       console.warn(`[Mock] Request #${index} ignored: Invalid ID '${req.id}'`)
@@ -123,32 +122,62 @@ function getData(requests) {
       return // Skip this specific item.
     }
 
-    // --- MOCK RESPONSE BLOCK ---
+    // --- MOCK RESPONSE ---
 
-    if (req.position) {
-      response.position = { ...req.position }
+    validRequests.push(req)
+
+    if (!response.payload['data']) {
+      response.payload['data'] = { x: [], y: [] }
     }
 
-    if (!response['data']) {
-      response['data'] = { x: [], y: [] }
-    }
-
-    const axis =
-      req.axis !== undefined ? req.axis : req.variable === 'VOI' ? 'x' : 'y'
-    if (req.variable === 'VOI') {
-      response['data'][axis] = generateMockSeries('linear')
-    } else if (req.variable && req.variable.includes('v_in')) {
-      response['data'][axis] = generateMockSeries('sine')
-    } else {
-      // Default fallback for other variables.
-      response['data'][axis] = generateMockSeries('random')
+    const { axis, type } = determineAxisAndType(req)
+    response.payload.data[axis] = generateMockSeries(type, 100)
+    if (axis === 'y') {
+      response.payload.data['title'] = `${req.payload.component}.${req.payload.variable}`
     }
   })
+
+  if (validRequests.length > 0) {
+    activeSubscriptions.value.push(validRequests)
+  }
 
   return response
 }
 
-defineExpose({ getData })
+function removeDataSubscription(subscriptionId) {
+  activeSubscriptions.value = activeSubscriptions.value.filter(
+    (session) => !session.find((req) => req.payload.id === subscriptionId)
+  )
+}
+
+defineExpose({ getData, removeDataSubscription })
+
+onMounted(() => {
+  intervalTimer = setInterval(() => {
+    if (activeSubscriptions.value.length === 0) return
+
+    activeSubscriptions.value.forEach((sessionRequests) => {
+      const updateData = { x: [], y: [] }
+
+      sessionRequests.forEach((req) => {
+        const { axis, type } = determineAxisAndType(req)
+        updateData[axis] = generateMockSeries(type, 100)
+        if (axis === 'y') {
+          updateData['title'] = `${req.payload.component}.${req.payload.variable}`
+        }
+      })
+
+      emit('update-data', {
+        requests: sessionRequests,
+        payload: { data: updateData },
+      })
+    })
+  }, 3000)
+})
+
+onUnmounted(() => {
+  if (intervalTimer) clearInterval(intervalTimer)
+})
 </script>
 
 <script>
@@ -244,10 +273,7 @@ export default {
             const datasetInfo = JSON.parse(xmlhttp.responseText)
 
             this.name = datasetInfo.name
-            this.uuid =
-              datasetInfo.study !== undefined
-                ? datasetInfo.study.uuid
-                : undefined
+            this.uuid = datasetInfo.study !== undefined ? datasetInfo.study.uuid : undefined
           }
         }
       }
@@ -406,10 +432,7 @@ export default {
      * clicked, calls this method.
      */
     viewDataset() {
-      window.open(
-        `https://sparc.science/datasets/${this.id}?type=dataset`,
-        '_blank'
-      )
+      window.open(`https://sparc.science/datasets/${this.id}?type=dataset`, '_blank')
     },
     /**
      * @public
@@ -471,10 +494,8 @@ export default {
           this.simulationUiInfo.simulation.opencor.pointInterval !== undefined
         ) {
           request.opencor.json_config.simulation = {
-            'Ending point':
-              this.simulationUiInfo.simulation.opencor.endingPoint,
-            'Point interval':
-              this.simulationUiInfo.simulation.opencor.pointInterval,
+            'Ending point': this.simulationUiInfo.simulation.opencor.endingPoint,
+            'Point interval': this.simulationUiInfo.simulation.opencor.pointInterval,
           }
         }
 
@@ -676,8 +697,7 @@ export default {
                 this.buildSimulationUi(JSON.parse(xmlhttp.responseText))
               })
             } else {
-              this.errorMessage =
-                'the simulation dataset could not be retrieved'
+              this.errorMessage = 'the simulation dataset could not be retrieved'
             }
           }
         }
@@ -967,9 +987,8 @@ span.error {
 }
 
 .p-select-option-label {
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
   font-size: 0.875rem;
 }
 </style>
