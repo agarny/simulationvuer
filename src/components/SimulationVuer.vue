@@ -63,7 +63,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
 
-const emit = defineEmits(['update-data'])
+const emit = defineEmits(['data-notification'])
 
 const activeSubscriptions = ref([])
 let intervalTimer = null
@@ -74,17 +74,8 @@ function getMockValue(type, tick) {
   return Math.random() * 10
 }
 
-function determineAxisAndType(req) {
-  const axis = req.payload.axis !== undefined ? req.payload.axis : req.payload.variable === 'VOI' ? 'x' : 'y'
-  let type = 'random'
-
-  if (req.payload.variable === 'VOI') {
-    type = 'linear'
-  } else if (req.payload.variable && req.payload.variable.includes('v_in')) {
-    type = 'sine'
-  }
-
-  return { axis, type }
+function mockType(req) {
+  return Math.random() < 0.5 ? 'sine' : 'random'
 }
 
 function generateMockSeries(type, length = 100) {
@@ -95,82 +86,70 @@ function generateMockSeries(type, length = 100) {
   return data
 }
 
-function getData(requests) {
-  if (!requests || !Array.isArray(requests)) {
-    console.error('getData: Request must be an array.')
-    return {}
+function addDataSubscription(subscription) {
+  if (!subscription || typeof subscription !== 'object') {
+    console.error('addDataSubscription: Subscription must be an object.')
+    return
   }
 
-  const response = { payload: {} }
   const EXPECTED_ID = 'nz.ac.auckland.simulation-data-request'
   const EXPECTED_MAJOR_VERSION = 0
 
-  const validRequests = []
-  requests.forEach((req, index) => {
-    // Check request is expected type.
-    if (req.id !== EXPECTED_ID) {
-      console.warn(`[Mock] Request #${index} ignored: Invalid ID '${req.id}'`)
-      return // Skip this specific item.
-    }
-
-    // Test version compatibility.
-    const requestMajorVersion = parseInt(req.version.split('.')[0])
-    if (requestMajorVersion !== EXPECTED_MAJOR_VERSION) {
-      console.warn(
-        `[Mock] Request #${index} ignored: Version mismatch. Expected v${EXPECTED_MAJOR_VERSION}.x, got v${req.version}`
-      )
-      return // Skip this specific item.
-    }
-
-    // --- MOCK RESPONSE ---
-
-    validRequests.push(req)
-
-    if (!response.payload['data']) {
-      response.payload['data'] = { x: [], y: [] }
-    }
-
-    const { axis, type } = determineAxisAndType(req)
-    response.payload.data[axis] = generateMockSeries(type, 100)
-    if (axis === 'y') {
-      response.payload.data['title'] = `${req.payload.component}.${req.payload.variable}`
-    }
-  })
-
-  if (validRequests.length > 0) {
-    activeSubscriptions.value.push(validRequests)
+  if (subscription.id !== EXPECTED_ID) {
+    console.warn(`Request ignored: Invalid ID '${subscription.id}'`)
+    return
   }
 
-  return response
+  const subscriptionMajorVersion = parseInt(subscription.version.split('.')[0])
+  if (subscriptionMajorVersion !== EXPECTED_MAJOR_VERSION) {
+    console.warn(
+      `Request ignored: Version mismatch. Expected v${EXPECTED_MAJOR_VERSION}.x, got v${subscription.version}`
+    )
+    return
+  }
+
+  activeSubscriptions.value.push(subscription.payload)
+  sendDataForSubscription(subscription.payload)
+}
+
+function sendDataForSubscription(dataSubscription) {
+  const type = mockType(dataSubscription)
+  let data = {
+    y: generateMockSeries(type, 100),
+    title: `${dataSubscription.component}.${dataSubscription.variable}`,
+  }
+  if (dataSubscription.withVOI) {
+    const voi_type = 'linear'
+    data.x = generateMockSeries(voi_type, 100)
+  }
+
+  const response = {
+    id: 'nz.ac.auckland.simulation-data-response',
+    version: '0.1.0',
+    payload: {
+      windowId: dataSubscription.windowId,
+      ownerId: dataSubscription.ownerId,
+      data: data,
+    },
+  }
+
+  emit('data-notification', response)
 }
 
 function removeDataSubscription(subscriptionId) {
   activeSubscriptions.value = activeSubscriptions.value.filter(
-    (session) => !session.find((req) => req.payload.id === subscriptionId)
+    (sub) => sub.windowId !== subscriptionId
   )
 }
 
-defineExpose({ getData, removeDataSubscription })
+defineExpose({ addDataSubscription, removeDataSubscription })
 
 onMounted(() => {
   intervalTimer = setInterval(() => {
     if (activeSubscriptions.value.length === 0) return
 
-    activeSubscriptions.value.forEach((sessionRequests) => {
-      const updateData = { x: [], y: [] }
-
-      sessionRequests.forEach((req) => {
-        const { axis, type } = determineAxisAndType(req)
-        updateData[axis] = generateMockSeries(type, 100)
-        if (axis === 'y') {
-          updateData['title'] = `${req.payload.component}.${req.payload.variable}`
-        }
-      })
-
-      emit('update-data', {
-        requests: sessionRequests,
-        payload: { data: updateData },
-      })
+    activeSubscriptions.value.forEach((subscription) => {
+      sendDataForSubscription(subscription)
     })
   }, 3000)
 })
