@@ -66,18 +66,22 @@ import { onMounted, onUnmounted, ref } from 'vue'
 const emit = defineEmits(['data-notification'])
 
 const activeSubscriptions = ref([])
+// Only for demonstration purposes.
 let intervalTimer = null
 
+// Only for demonstration purposes.
 function getMockValue(type, tick) {
   if (type === 'sine') return Math.sin(tick * 0.1) * 10
   if (type === 'linear') return tick
   return Math.random() * 10
 }
 
+// Only for demonstration purposes.
 function mockType(req) {
   return Math.random() < 0.5 ? 'sine' : 'random'
 }
 
+// Only for demonstration purposes.
 function generateMockSeries(type, length = 100) {
   const data = []
   for (let i = 0; i < length; i++) {
@@ -113,6 +117,7 @@ function addDataSubscription(subscription) {
 }
 
 function sendDataForSubscription(dataSubscription) {
+  // Only for demonstration purposes.
   const type = mockType(dataSubscription)
   let data = {
     y: generateMockSeries(type, 100),
@@ -144,6 +149,7 @@ function removeDataSubscription(subscriptionId) {
 
 defineExpose({ addDataSubscription, removeDataSubscription })
 
+// Only for demonstration purposes.
 onMounted(() => {
   intervalTimer = setInterval(() => {
     if (activeSubscriptions.value.length === 0) return
@@ -154,6 +160,7 @@ onMounted(() => {
   }, 3000)
 })
 
+// Only for demonstration purposes.
 onUnmounted(() => {
   if (intervalTimer) clearInterval(intervalTimer)
 })
