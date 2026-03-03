@@ -1,17 +1,14 @@
 <template>
   <div class="simulation-vuer" v-loading="showUserMessage" :element-loading-text="userMessage">
     <div class="container" v-if="opencorOmexFile === null">
-      <p v-if="!hasValidSimulationUiInfo && !showUserMessage" class="default error">
-        <span class="error">Error:</span> {{ errorMessage }}.
-      </p>
+      <p v-if="!hasValidSimulationUiInfo && !showUserMessage" class="default error"><span class="error">Error:</span> {{ errorMessage }}.</p>
       <div class="main" v-if="hasValidSimulationUiInfo">
-        <div class="main-left" :class="{ 'with-buttons': uuid }">
+        <div class="main-left" :class="{'with-buttons': uuid}">
           <p class="default name">{{ name }}</p>
           <el-divider></el-divider>
           <p class="default input-parameters">Input parameters</p>
           <div class="input scrollbar">
-            <SimulationVuerInput
-              v-for="(input, index) in simulationUiInfo.input"
+            <SimulationVuerInput v-for="(input, index) in simulationUiInfo.input"
               ref="simInput"
               :defaultValue="input.defaultValue"
               :key="`input-${index}`"
@@ -36,8 +33,7 @@
           </div>
         </div>
         <div class="main-right" ref="output" v-show="isSimulationValid">
-          <PlotVuer
-            v-for="(_outputPlot, index) in simulationUiInfo.output.plots"
+          <PlotVuer v-for="(_outputPlot, index) in simulationUiInfo.output.plots"
             :key="`output-${index}`"
             :metadata="plotMetadata(index)"
             :data-source="{ data: simulationResults[index] }"
@@ -47,10 +43,7 @@
           />
         </div>
         <div class="main-right" v-show="!isSimulationValid">
-          <p class="default error">
-            <span class="error">Error:</span>
-            <span v-html="errorMessage"></span>.
-          </p>
+          <p class="default error"><span class="error">Error:</span> <span v-html="errorMessage"></span>.</p>
         </div>
       </div>
     </div>
@@ -167,35 +160,35 @@ onUnmounted(() => {
 </script>
 
 <script>
-import { PlotVuer } from '@abi-software/plotvuer'
-import '@abi-software/plotvuer/dist/style.css'
-import SimulationVuerInput from './SimulationVuerInput.vue'
-import { ElButton, ElDivider, ElLoading } from 'element-plus'
-import { evaluateValue, finaliseUi, OPENCOR_SOLVER_NAME } from './common.js'
-import { validJson } from './json.js'
-import { create, all } from 'mathjs'
-import OpenCOR from '@opencor/opencor'
-import '@opencor/opencor/style.css'
+import { PlotVuer } from "@abi-software/plotvuer";
+import "@abi-software/plotvuer/dist/style.css";
+import SimulationVuerInput from "./SimulationVuerInput.vue";
+import { ElButton, ElDivider, ElLoading } from "element-plus";
+import { evaluateValue, finaliseUi, OPENCOR_SOLVER_NAME } from "./common.js";
+import { validJson } from "./json.js";
+import { create, all } from "mathjs";
+import OpenCOR from '@opencor/opencor';
+import '@opencor/opencor/style.css';
 
-const PMR_URL = 'https://models.physiomeproject.org/'
+const PMR_URL = "https://models.physiomeproject.org/";
 
-const math = create(all, {})
+const math = create(all, {});
 
 const IdType = Object.freeze({
   DATASET_ID: 'dataset_id',
   DATASET_URL: 'dataset_url',
   PMR_PATH: 'pmr_path',
   RAW_COMBINE_ARCHIVE: 'raw_combine_archive',
-})
+});
 
 function isWebProtocol(urlString) {
   try {
-    const url = new URL(urlString)
+    const url = new URL(urlString);
     // Protocol property includes the colon, e.g., "https:".
-    return url.protocol === 'http:' || url.protocol === 'https:'
+    return url.protocol === "http:" || url.protocol === "https:";
   } catch (_err) {
     // String was not a valid URL.
-    return false
+    return false;
   }
 }
 
@@ -203,7 +196,7 @@ function isWebProtocol(urlString) {
  * SimulationVuer
  */
 export default {
-  name: 'SimulationVuer',
+  name: "SimulationVuer",
   components: {
     PlotVuer,
     SimulationVuerInput,
@@ -235,39 +228,39 @@ export default {
   data: function () {
     // Determine the ID's type.
 
-    let idType
+    let idType;
 
-    if (typeof this.id === 'number') {
-      idType = IdType.DATASET_ID
+    if (typeof this.id === "number") {
+      idType = IdType.DATASET_ID;
     } else if (this.id instanceof Uint8Array) {
-      idType = IdType.RAW_COMBINE_ARCHIVE
+      idType = IdType.RAW_COMBINE_ARCHIVE;
     } else if (isWebProtocol(this.id)) {
-      idType = IdType.DATASET_URL
+      idType = IdType.DATASET_URL;
     } else {
-      idType = IdType.PMR_PATH
+      idType = IdType.PMR_PATH;
     }
 
     // Retrieve some information about the dataset.
 
     if (idType === IdType.DATASET_ID) {
-      const xmlhttp = new XMLHttpRequest()
+      const xmlhttp = new XMLHttpRequest();
 
-      xmlhttp.open('GET', this.apiLocation + '/sim/dataset/' + this.id)
+      xmlhttp.open("GET", this.apiLocation + "/sim/dataset/" + this.id);
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
           if (xmlhttp.status === 200) {
-            const datasetInfo = JSON.parse(xmlhttp.responseText)
+            const datasetInfo = JSON.parse(xmlhttp.responseText);
 
-            this.name = datasetInfo.name
-            this.uuid = datasetInfo.study !== undefined ? datasetInfo.study.uuid : undefined
+            this.name = datasetInfo.name;
+            this.uuid = (datasetInfo.study !== undefined) ? datasetInfo.study.uuid : undefined;
           }
         }
-      }
-      xmlhttp.send()
+      };
+      xmlhttp.send();
     }
 
     return {
-      errorMessage: '',
+      errorMessage: "",
       fileManager: undefined,
       hasFinalisedUi: false,
       hasValidSimulationUiInfo: false,
@@ -289,10 +282,10 @@ export default {
       simulationResultsId: {},
       simulationUiInfo: {},
       solver: undefined,
-      userMessage: '',
+      userMessage: "",
       ui: null,
       uuid: null,
-    }
+    };
   },
   methods: {
     /**
@@ -302,13 +295,13 @@ export default {
      */
     plotMetadata(index) {
       return {
-        version: '1.1.0',
-        type: 'plot',
+        version: "1.1.0",
+        type: "plot",
         attrs: {
-          style: 'timeseries',
+          style: "timeseries",
           layout: this.layout[index],
         },
-      }
+      };
     },
     /**
      * @public
@@ -318,49 +311,49 @@ export default {
     buildSimulationUi(simulationUiInfo) {
       // Keep track of the simulation UI information.
 
-      this.simulationUiInfo = simulationUiInfo
+      this.simulationUiInfo = simulationUiInfo;
 
       // Make sure that the simulation UI information is valid.
 
-      this.hasValidSimulationUiInfo = validJson(this.simulationUiInfo)
+      this.hasValidSimulationUiInfo = validJson(this.simulationUiInfo);
 
       if (!this.hasValidSimulationUiInfo) {
-        this.errorMessage = 'the simulation.json file is malformed'
+        this.errorMessage = "the simulation.json file is malformed";
 
-        return
+        return;
       }
 
       // Retrieve and keep track of the solver to be used for the simulation.
 
       this.simulationUiInfo.simulation.solvers.forEach((solver) => {
-        if (solver.if === undefined || evaluateValue(this, solver.if)) {
-          this.solver = solver
+        if ((solver.if === undefined) || evaluateValue(this, solver.if)) {
+          this.solver = solver;
         }
-      })
+      });
 
       if (this.solver === undefined) {
-        this.hasValidSimulationUiInfo = false
-        this.errorMessage = 'no solver name and/or solver version specified'
+        this.hasValidSimulationUiInfo = false;
+        this.errorMessage = "no solver name and/or solver version specified";
 
-        return
+        return;
       }
 
-      this.opencorBasedSimulation = this.solver.name === OPENCOR_SOLVER_NAME
+      this.opencorBasedSimulation = this.solver.name === OPENCOR_SOLVER_NAME;
 
       // Initialise our UI.
 
       this.simulationUiInfo.output.data.forEach((data) => {
-        this.simulationResultsId[data.id] = data.name
-      })
+        this.simulationResultsId[data.id] = data.name;
+      });
 
-      let index = -1
+      let index = -1;
 
       this.simulationUiInfo.output.plots.forEach((outputPlot) => {
-        ++index
+        ++index;
 
         this.layout[index] = {
-          paper_bgcolor: 'rgba(0, 0, 0, 0)',
-          plot_bgcolor: 'rgba(0, 0, 0, 0)',
+          paper_bgcolor: "rgba(0, 0, 0, 0)",
+          plot_bgcolor: "rgba(0, 0, 0, 0)",
           autosize: true,
           margin: {
             t: 25,
@@ -374,7 +367,7 @@ export default {
             responsive: true,
             scrollZoom: true,
           },
-          dragmode: 'pan',
+          dragmode: "pan",
           xaxis: {
             title: {
               text: outputPlot.xAxisTitle,
@@ -391,8 +384,8 @@ export default {
               },
             },
           },
-        }
-      })
+        };
+      });
 
       // Finalise our UI.
       // Note: we try both here and in the mounted() function since we have no
@@ -400,8 +393,8 @@ export default {
       //       information.
 
       this.$nextTick(() => {
-        finaliseUi(this)
-      })
+        finaliseUi(this);
+      });
     },
     /**
      * @public
@@ -410,7 +403,7 @@ export default {
      * method.
      */
     runOnOsparc() {
-      window.open(`https://osparc.io/study/${this.uuid}`, '_blank')
+      window.open(`https://osparc.io/study/${this.uuid}`, "_blank");
     },
     /**
      * @public
@@ -418,7 +411,7 @@ export default {
      * clicked, calls this method.
      */
     viewDataset() {
-      window.open(`https://sparc.science/datasets/${this.id}?type=dataset`, '_blank')
+      window.open(`https://sparc.science/datasets/${this.id}?type=dataset`, "_blank");
     },
     /**
      * @public
@@ -426,22 +419,22 @@ export default {
      * calls this method.
      */
     viewWorkspace() {
-      const url = PMR_URL + this.id
+      const url = PMR_URL + this.id;
 
-      window.open(url.substring(0, url.lastIndexOf('/')), '_blank')
+      window.open(url.substring(0, url.lastIndexOf("/")), "_blank");
     },
     /**
      * @public
      * Data needed to set a model's parameters.
      */
     parametersData() {
-      const res = {}
+      const res = {};
 
       this.simulationUiInfo.parameters.forEach((parameter) => {
-        res[parameter.name] = evaluateValue(this, parameter.value)
-      })
+        res[parameter.name] = evaluateValue(this, parameter.value);
+      });
 
-      return res
+      return res;
     },
     /**
      * @public
@@ -450,15 +443,15 @@ export default {
     outputData() {
       if (this.output === undefined) {
         if (this.simulationUiInfo.output.data !== undefined) {
-          this.output = []
+          this.output = [];
 
           this.simulationUiInfo.output.data.forEach((output) => {
-            this.output.push(output.name)
-          })
+            this.output.push(output.name);
+          });
         }
       }
 
-      return this.output
+      return this.output;
     },
     /**
      * @public
@@ -466,39 +459,37 @@ export default {
      */
     retrieveRequest() {
       const request = {
-        solver: this.solver,
-      }
+        solver: this.solver
+      };
 
       if (this.opencorBasedSimulation) {
         request.opencor = {
           model_url: this.simulationUiInfo.simulation.opencor.resource,
           json_config: {},
-        }
+        };
 
-        if (
-          this.simulationUiInfo.simulation.opencor.endingPoint !== undefined &&
-          this.simulationUiInfo.simulation.opencor.pointInterval !== undefined
-        ) {
+        if ((this.simulationUiInfo.simulation.opencor.endingPoint !== undefined)
+          && (this.simulationUiInfo.simulation.opencor.pointInterval !== undefined)) {
           request.opencor.json_config.simulation = {
-            'Ending point': this.simulationUiInfo.simulation.opencor.endingPoint,
-            'Point interval': this.simulationUiInfo.simulation.opencor.pointInterval,
-          }
+            "Ending point": this.simulationUiInfo.simulation.opencor.endingPoint,
+            "Point interval": this.simulationUiInfo.simulation.opencor.pointInterval,
+          };
         }
 
-        request.opencor.json_config.parameters = this.parametersData()
+        request.opencor.json_config.parameters = this.parametersData();
 
-        const output = this.outputData()
+        const output = this.outputData();
 
         if (output !== undefined) {
-          request.opencor.json_config.output = output
+          request.opencor.json_config.output = output;
         }
       } else {
-        request.osparc = {}
+        request.osparc = {};
 
-        request.osparc.job_inputs = this.parametersData()
+        request.osparc.job_inputs = this.parametersData();
       }
 
-      return request
+      return request;
     },
     /**
      * @public
@@ -510,50 +501,50 @@ export default {
       // Convert, if needed, the results to a JSON format that is compatible
       // with our OpenCOR results.
 
-      if (typeof results === 'string') {
-        const SPACES = /[ \t]+/g
-        const lines = results.trim().split('\n')
-        const iMax = lines[0].trim().split(SPACES).length
+      if (typeof (results) === "string") {
+        const SPACES = /[ \t]+/g;
+        const lines = results.trim().split("\n");
+        const iMax = lines[0].trim().split(SPACES).length;
 
-        results = {}
+        results = {};
 
         for (let i = 0; i < iMax; ++i) {
-          results[i] = []
+          results[i] = [];
         }
 
-        let i = -1
+        let i = -1;
 
         lines.forEach((line) => {
-          ++i
+          ++i;
 
-          let j = -1
-          const values = line.trim().split(SPACES)
+          let j = -1;
+          const values = line.trim().split(SPACES);
 
           values.forEach((value) => {
-            results[++j][i] = Number(value)
-          })
-        })
+            results[++j][i] = Number(value);
+          });
+        });
       }
 
       // Get the results ready for plotting.
 
-      const parser = new math.parser()
+      const parser = new math.parser();
 
       Object.keys(this.simulationResultsId).forEach((id) => {
-        parser.set(id, results[this.simulationResultsId[id]])
-      })
+        parser.set(id, results[this.simulationResultsId[id]]);
+      });
 
-      let index = -1
+      let index = -1;
 
       this.simulationUiInfo.output.plots.forEach((outputPlot) => {
         this.simulationResults[++index] = [
           {
             x: parser.evaluate(outputPlot.xValue),
             y: parser.evaluate(outputPlot.yValue),
-            type: 'scatter',
+            type: "scatter",
           },
-        ]
-      })
+        ];
+      });
     },
     /**
      * @public
@@ -561,15 +552,9 @@ export default {
      * @arg `xmlhttp`
      */
     showHttpIssue(xmlhttp) {
-      this.isSimulationValid = false
-      this.showUserMessage = false
-      this.errorMessage =
-        xmlhttp.statusText.toLowerCase() +
-        " (<a href='https://httpstatuses.com/" +
-        xmlhttp.status +
-        "/' target='_blank'>" +
-        xmlhttp.status +
-        '</a>)'
+      this.isSimulationValid = false;
+      this.showUserMessage = false;
+      this.errorMessage = xmlhttp.statusText.toLowerCase() + " (<a href='https://httpstatuses.com/" + xmlhttp.status + "/' target='_blank'>" + xmlhttp.status + "</a>)";
     },
     /**
      * @public
@@ -581,44 +566,44 @@ export default {
     checkSimulation(data) {
       // Check the simulation.
 
-      const xmlhttp = new XMLHttpRequest()
+      const xmlhttp = new XMLHttpRequest();
 
-      xmlhttp.open('POST', this.apiLocation + '/check_simulation')
-      xmlhttp.setRequestHeader('Content-type', 'application/json')
+      xmlhttp.open("POST", this.apiLocation + "/check_simulation");
+      xmlhttp.setRequestHeader("Content-type", "application/json");
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
           if (xmlhttp.status === 200) {
-            let response = JSON.parse(xmlhttp.responseText)
+            let response = JSON.parse(xmlhttp.responseText);
 
-            this.isSimulationValid = response.status === 'ok'
+            this.isSimulationValid = response.status === "ok";
 
             if (this.isSimulationValid) {
               if (response.results !== undefined) {
                 // The simulation is finished, so process its results.
 
-                this.showUserMessage = false
+                this.showUserMessage = false;
 
-                this.processSimulationResults(response.results)
+                this.processSimulationResults(response.results);
               } else {
                 // The simulation is not yet finished, so check again in a
                 // second.
 
-                let that = this
+                let that = this;
 
                 setTimeout(function () {
-                  that.checkSimulation(data)
-                }, 1000)
+                  that.checkSimulation(data);
+                }, 1000);
               }
             } else {
-              this.showUserMessage = false
-              this.errorMessage = response.description
+              this.showUserMessage = false;
+              this.errorMessage = response.description;
             }
           } else {
-            this.showHttpIssue(xmlhttp)
+            this.showHttpIssue(xmlhttp);
           }
         }
-      }
-      xmlhttp.send(JSON.stringify(data))
+      };
+      xmlhttp.send(JSON.stringify(data));
     },
     /**
      * @public
@@ -629,73 +614,72 @@ export default {
       // Start the simulation (after resetting our previous simulation data, in
       // case there were sonme).
 
-      this.userMessage = 'Loading simulation results...'
-      this.showUserMessage = true
+      this.userMessage = "Loading simulation results...";
+      this.showUserMessage = true;
 
       this.$nextTick(() => {
-        this.simulationResults = {}
+        this.simulationResults = {};
 
-        const xmlhttp = new XMLHttpRequest()
+        const xmlhttp = new XMLHttpRequest();
 
-        xmlhttp.open('POST', this.apiLocation + '/start_simulation')
-        xmlhttp.setRequestHeader('Content-type', 'application/json')
+        xmlhttp.open("POST", this.apiLocation + "/start_simulation");
+        xmlhttp.setRequestHeader("Content-type", "application/json");
         xmlhttp.onreadystatechange = () => {
           if (xmlhttp.readyState === 4) {
             if (xmlhttp.status === 200) {
-              let response = JSON.parse(xmlhttp.responseText)
+              let response = JSON.parse(xmlhttp.responseText);
 
-              this.isSimulationValid = response.status === 'ok'
+              this.isSimulationValid = response.status === "ok";
 
               if (this.isSimulationValid) {
-                this.checkSimulation(response.data)
+                this.checkSimulation(response.data);
               } else {
-                this.showUserMessage = false
-                this.errorMessage = response.description
+                this.showUserMessage = false;
+                this.errorMessage = response.description;
               }
             } else {
-              this.showHttpIssue(xmlhttp)
+              this.showHttpIssue(xmlhttp);
             }
           }
-        }
-        xmlhttp.send(JSON.stringify(this.retrieveRequest()))
-      })
+        };
+        xmlhttp.send(JSON.stringify(this.retrieveRequest()));
+      });
     },
   },
   created: function () {
     // Try to retrieve the UI information.
 
     if (this.idType === IdType.DATASET_ID) {
-      this.userMessage = 'Retrieving UI information...'
-      this.showUserMessage = true
+      this.userMessage = "Retrieving UI information...";
+      this.showUserMessage = true;
 
       // Retrieve and build the simulation UI.
 
       this.$nextTick(() => {
-        const xmlhttp = new XMLHttpRequest()
+        const xmlhttp = new XMLHttpRequest();
 
-        xmlhttp.open('GET', this.apiLocation + '/simulation_ui_file/' + this.id)
+        xmlhttp.open("GET", this.apiLocation + "/simulation_ui_file/" + this.id);
         xmlhttp.onreadystatechange = () => {
           if (xmlhttp.readyState === 4) {
-            this.showUserMessage = false
+            this.showUserMessage = false;
 
             if (xmlhttp.status === 200) {
               this.$nextTick(() => {
-                this.buildSimulationUi(JSON.parse(xmlhttp.responseText))
-              })
+                this.buildSimulationUi(JSON.parse(xmlhttp.responseText));
+              });
             } else {
-              this.errorMessage = 'the simulation dataset could not be retrieved'
+              this.errorMessage = "the simulation dataset could not be retrieved";
             }
           }
-        }
-        xmlhttp.send()
-      })
+        };
+        xmlhttp.send();
+      });
     } else if (this.idType === IdType.DATASET_URL) {
-      this.opencorOmexFile = this.id
+      this.opencorOmexFile = this.id;
     } else if (this.idType === IdType.PMR_PATH) {
-      this.opencorOmexFile = PMR_URL + this.id
-    } else {
-      // IdType.RAW_COMBINE_ARCHIVE
-      this.opencorOmexFile = this.id
+      this.opencorOmexFile = PMR_URL + this.id;
+    } else { // IdType.RAW_COMBINE_ARCHIVE
+      this.opencorOmexFile = this.id;
     }
   },
   mounted: function () {
@@ -704,20 +688,20 @@ export default {
     //       idea how long it's going to take to retrieve the simulation UI
     //       information.
 
-    this.isMounted = true
+    this.isMounted = true;
 
-    finaliseUi(this)
+    finaliseUi(this);
   },
-}
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .simulation-vuer {
-  --el-color-primary: #8300bf;
-  --el-color-primary-light-7: #dab3ec;
-  --el-color-primary-light-8: #e6ccf2;
-  --el-color-primary-light-9: #f3e6f9;
+  --el-color-primary: #8300BF;
+  --el-color-primary-light-7: #DAB3EC;
+  --el-color-primary-light-8: #E6CCF2;
+  --el-color-primary-light-9: #F3E6F9;
 }
 
 :deep(.el-button:hover) {
@@ -731,32 +715,29 @@ export default {
 
 :deep(.el-loading-spinner) {
   .path {
-    stroke: #8300bf;
+    stroke: #8300BF;
   }
 
   i,
   .el-loading-text {
-    color: #8300bf;
+    color: #8300BF;
   }
 }
 
-:deep(.p-floatlabel:has(input:focus)) label,
-:deep(.p-floatlabel:has(input:-webkit-autofill)) label,
-:deep(.p-floatlabel:has(textarea:focus)) label,
-:deep(.p-floatlabel:has(.p-inputwrapper-focus)) label {
-  color: #8300bf;
+:deep(.p-floatlabel:has(input:focus)) label, :deep(.p-floatlabel:has(input:-webkit-autofill)) label, :deep(.p-floatlabel:has(textarea:focus)) label, :deep(.p-floatlabel:has(.p-inputwrapper-focus)) label {
+  color: #8300BF;
 }
 
 :deep(.p-inputtext:enabled:focus) {
-  border-color: #8300bf;
+    border-color: #8300BF;
 }
 
 :deep(.p-select:not(.p-disabled).p-focus) {
-  border-color: #8300bf;
+    border-color: #8300BF;
 }
 
 :deep(.p-slider-range) {
-  background-color: #8300bf;
+  background-color: #8300BF;
 }
 
 div.input {
@@ -959,22 +940,21 @@ span.error {
 /* Note: not sure why, but the following rules need to be global!? */
 
 .p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
-  background: #f5f7fa !important;
+    background: #F5F7FA !important;
 }
 
 .p-select-option.p-select-option-selected.p-focus {
-  background: #f5f7fa !important;
-  color: #8300bf !important;
+    background: #F5F7FA !important;
+    color: #8300BF !important;
 }
 
 .p-select-option.p-select-option-selected {
-  background: white !important;
-  color: #8300bf !important;
+    background: white !important;
+    color: #8300BF !important;
 }
 
 .p-select-option-label {
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
-    'Droid Sans', 'Helvetica Neue', sans-serif;
-  font-size: 0.875rem;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-size: 0.875rem;
 }
 </style>
