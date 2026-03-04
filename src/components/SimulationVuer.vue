@@ -97,7 +97,7 @@ function addDataSubscription(subscription) {
     return
   }
 
-  const subscriptionMajorVersion = parseInt(subscription.version.split('.')[0])
+  const subscriptionMajorVersion = parseInt(subscription.version.split('.')[0], 10)
   if (subscriptionMajorVersion !== EXPECTED_MAJOR_VERSION) {
     console.warn(
       `Request ignored: Version mismatch. Expected v${EXPECTED_MAJOR_VERSION}.x, got v${subscription.version}`
