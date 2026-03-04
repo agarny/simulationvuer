@@ -939,6 +939,10 @@ span.error {
 <style>
 /* Note: not sure why, but the following rules need to be global!? */
 
+.p-progressbar-value {
+  background-color: #8300BF !important;
+}
+
 .p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
     background: #F5F7FA !important;
 }
