@@ -274,7 +274,8 @@ export default {
 
       this.activeSubscriptions.push(payload);
 
-      // Build the list of model parameters to be tracked for this subscription.
+      // Ask OpenCOR to track the simulation data associated with the subscription's component and variable (and the
+      // VOI, if requested).
 
       const modelParameters = [];
 
@@ -292,6 +293,48 @@ export default {
      * @arg `subscriptionId `
      */
     removeDataSubscription(subscriptionId) {
+      // Ask OpenCOR to stop tracking the simulation data associated with the subscription's component and variable (and
+      // the VOI, if requested and unless it's requested by another subscription).
+
+      const subscription = this.activeSubscriptions.find((activeSubscription) => {
+        return activeSubscription.windowId === subscriptionId;
+      });
+
+      if (!subscription) {
+        console.warn(`removeDataSubscription: no active subscription found for id ${subscriptionId}.`);
+
+        return;
+      }
+
+      const isVoiTrackedByAnotherSubscription = this.activeSubscriptions.some((activeSubscription) => {
+        return activeSubscription.windowId !== subscriptionId && activeSubscription.withVOI;
+      });
+      const isModelParameterTrackedByAnotherSubscription = this.activeSubscriptions.some((activeSubscription) => {
+        return (
+          activeSubscription.windowId !== subscriptionId &&
+          activeSubscription.component === subscription.component &&
+          activeSubscription.variable === subscription.variable
+        );
+      });
+
+      if (!isVoiTrackedByAnotherSubscription || !isModelParameterTrackedByAnotherSubscription) {
+        const modelParameters = [];
+
+        if (subscription.withVOI && !isVoiTrackedByAnotherSubscription) {
+          modelParameters.push('VOI');
+        }
+
+        if (!isModelParameterTrackedByAnotherSubscription) {
+          modelParameters.push(`${subscription.component}/${subscription.variable}`);
+        }
+
+        if (modelParameters.length) {
+          this.$refs.opencorRef?.untrackSimulationData(modelParameters);
+        }
+      }
+
+      // Remove the subscription from our list of active subscriptions.
+
       this.activeSubscriptions = this.activeSubscriptions.filter((activeSubscription) => {
         return activeSubscription.windowId !== subscriptionId;
       });
