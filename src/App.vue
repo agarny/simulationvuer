@@ -85,7 +85,7 @@ export default {
         { id: "https://raw.githubusercontent.com/opencor/webapp/refs/heads/main/tests/models/ui/135.omex", label: "135", description: "COMBINE archive" },
         { id: "https://raw.githubusercontent.com/opencor/webapp/refs/heads/main/tests/models/ui/157.omex", label: "157", description: "COMBINE archive" },
         { id: "https://raw.githubusercontent.com/opencor/webapp/refs/heads/main/tests/models/ui/lorenz.omex", label: "Lorenz", description: "COMBINE archive" },
-        { id: "https://raw.githubusercontent.com/opencor/webapp/refs/heads/main/tests/models/ui/tt04.omex", label: "TT04", description: "COMBINE archive" },
+        { id: "https://raw.githubusercontent.com/opencor/webapp/refs/heads/main/tests/models/ui/tt04_with_names.omex", label: "TT04", description: "COMBINE archive" },
         { id: "https://raw.githubusercontent.com/opencor/webapp/refs/heads/main/tests/models/ui/cvs.omex", label: "CVS", description: "COMBINE archive" },
       ],
       pmrPaths: [
