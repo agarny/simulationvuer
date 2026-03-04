@@ -48,116 +48,15 @@
       </div>
     </div>
     <div v-else class="opencor">
-      <OpenCOR :omex="opencorOmexFile" theme="light" />
+      <OpenCOR
+        ref="opencorRef"
+        :omex="opencorOmexFile"
+        theme="light"
+        @simulationData="onSimulationData($event)"
+      />
     </div>
   </div>
 </template>
-
-<script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
-
-const emit = defineEmits(['data-notification'])
-
-const activeSubscriptions = ref([])
-// Only for demonstration purposes.
-let intervalTimer = null
-
-// Only for demonstration purposes.
-function getMockValue(type, tick) {
-  if (type === 'sine') return Math.sin(tick * 0.1) * 10
-  if (type === 'linear') return tick
-  return Math.random() * 10
-}
-
-// Only for demonstration purposes.
-function mockType(req) {
-  return Math.random() < 0.5 ? 'sine' : 'random'
-}
-
-// Only for demonstration purposes.
-function generateMockSeries(type, length = 100) {
-  const data = []
-  for (let i = 0; i < length; i++) {
-    data.push(getMockValue(type, i))
-  }
-  return data
-}
-
-function addDataSubscription(subscription) {
-  if (!subscription || typeof subscription !== 'object') {
-    console.error('addDataSubscription: Subscription must be an object.')
-    return
-  }
-
-  const EXPECTED_ID = 'nz.ac.auckland.simulation-data-request'
-  const EXPECTED_MAJOR_VERSION = 0
-
-  if (subscription.id !== EXPECTED_ID) {
-    console.warn(`Request ignored: Invalid ID '${subscription.id}'`)
-    return
-  }
-
-  const subscriptionMajorVersion = parseInt(subscription.version.split('.')[0], 10)
-  if (subscriptionMajorVersion !== EXPECTED_MAJOR_VERSION) {
-    console.warn(
-      `Request ignored: Version mismatch. Expected v${EXPECTED_MAJOR_VERSION}.x, got v${subscription.version}`
-    )
-    return
-  }
-
-  activeSubscriptions.value.push(subscription.payload)
-  sendDataForSubscription(subscription.payload)
-}
-
-function sendDataForSubscription(dataSubscription) {
-  // Only for demonstration purposes.
-  const type = mockType(dataSubscription)
-  let data = {
-    y: generateMockSeries(type, 100),
-    title: `${dataSubscription.component}.${dataSubscription.variable}`,
-  }
-  if (dataSubscription.withVOI) {
-    const voi_type = 'linear'
-    data.x = generateMockSeries(voi_type, 100)
-  }
-
-  const response = {
-    id: 'nz.ac.auckland.simulation-data-response',
-    version: '0.1.0',
-    payload: {
-      windowId: dataSubscription.windowId,
-      ownerId: dataSubscription.ownerId,
-      data: data,
-    },
-  }
-
-  emit('data-notification', response)
-}
-
-function removeDataSubscription(subscriptionId) {
-  activeSubscriptions.value = activeSubscriptions.value.filter(
-    (sub) => sub.windowId !== subscriptionId
-  )
-}
-
-defineExpose({ addDataSubscription, removeDataSubscription })
-
-// Only for demonstration purposes.
-onMounted(() => {
-  intervalTimer = setInterval(() => {
-    if (activeSubscriptions.value.length === 0) return
-
-    activeSubscriptions.value.forEach((subscription) => {
-      sendDataForSubscription(subscription)
-    })
-  }, 3000)
-})
-
-// Only for demonstration purposes.
-onUnmounted(() => {
-  if (intervalTimer) clearInterval(intervalTimer)
-})
-</script>
 
 <script>
 import { PlotVuer } from "@abi-software/plotvuer";
@@ -285,9 +184,164 @@ export default {
       userMessage: "",
       ui: null,
       uuid: null,
+      activeSubscriptions: [],
     };
   },
   methods: {
+    /**
+     * @public
+     * Add a data subscription.
+     * @arg `subscription `
+     */
+    addDataSubscription(subscription) {
+      // Check that the subscription is valid.
+
+      if (!subscription || typeof subscription !== 'object') {
+        console.error('addDataSubscription: subscription must be an object.');
+
+        return;
+      }
+
+      // Check that the subscription has the expected ID.
+
+      const EXPECTED_ID = 'nz.ac.auckland.simulation-data-request';
+      const EXPECTED_MAJOR_VERSION = 0;
+
+      if (subscription.id !== EXPECTED_ID) {
+        console.warn(`addDataSubscription: invalid ID (expected '${EXPECTED_ID}' but got '${subscription.id}').`);
+
+        return;
+      }
+
+      // Check that the version is valid and compatible with what we expect.
+
+      if (typeof subscription.version !== 'string') {
+        console.warn(`addDataSubscription: missing or non-string version ('${subscription.version}').`);
+
+        return;
+      }
+
+      const versionParts = subscription.version.split('.');
+
+      if (versionParts.length < 1 || !/^[0-9]+$/.test(versionParts[0])) {
+        console.warn(`addDataSubscription: malformed version ('${subscription.version}').`);
+
+        return;
+      }
+
+      const subscriptionMajorVersion = parseInt(versionParts[0], 10);
+
+      if (Number.isNaN(subscriptionMajorVersion)) {
+        console.warn(`addDataSubscription: could not parse the major version from ('${subscription.version}')`);
+
+        return;
+      }
+
+      if (subscriptionMajorVersion !== EXPECTED_MAJOR_VERSION) {
+        console.warn(`addDataSubscription: version mismatch (expected v${EXPECTED_MAJOR_VERSION}.y.z but got v${subscription.version}).`);
+
+        return;
+      }
+
+      // Check that the payload contains the required fields.
+
+      const payload = subscription.payload || {};
+      const missing = [];
+
+      if (payload.windowId == null) {
+        missing.push('windowId');
+      }
+
+      if (payload.ownerId == null) {
+        missing.push('ownerId');
+      }
+
+      if (!payload.component) {
+        missing.push('component');
+      }
+
+      if (!payload.variable) {
+        missing.push('variable');
+      }
+
+      if (missing.length) {
+        console.warn(`addDataSubscription: payload missing fields: ${missing.join(', ')}.`);
+
+        return;
+      }
+
+      // The subscription is valid, so add it to our list of active subscriptions.
+
+      this.activeSubscriptions.push(payload);
+
+      // Build the list of model parameters to be tracked for this subscription.
+
+      const modelParameters = [];
+
+      if (subscription.payload?.withVOI) {
+        modelParameters.push('VOI');
+      }
+
+      modelParameters.push(`${subscription.payload?.component}/${subscription.payload?.variable}`);
+
+      this.$refs.opencorRef?.trackSimulationData(modelParameters);
+    },
+    /**
+     * @public
+     * Remove a data subscription.
+     * @arg `subscriptionId `
+     */
+    removeDataSubscription(subscriptionId) {
+      this.activeSubscriptions = this.activeSubscriptions.filter((activeSubscription) => {
+        return activeSubscription.windowId !== subscriptionId;
+      });
+    },
+    /**
+     * @public
+     * Let the outside world know that we have received some simulation data from OpenCOR by emitting a `data-notification` event.
+     * @arg `event`
+     */
+    onSimulationData(event) {
+      const simulationData = event.simulationData || {};
+      let voi;
+
+      this.activeSubscriptions.forEach((activeSubscription) => {
+        const modelParameter = `${activeSubscription.component}/${activeSubscription.variable}`;
+
+        if (simulationData[modelParameter] == null) {
+          console.warn(`onSimulationData: no data for ${modelParameter}.`);
+
+          return;
+        }
+
+        const data = {
+          y: Array.from(simulationData[modelParameter]),
+          title: `${activeSubscription.component}.${activeSubscription.variable}`,
+        };
+
+        if (activeSubscription.withVOI) {
+          if (simulationData.VOI == null) {
+            console.warn('onSimulationData: no data for VOI.');
+
+            return;
+          } else {
+            voi ??= Array.from(simulationData.VOI);
+
+            data.x = voi;
+          }
+        }
+
+        this.$emit('data-notification', {
+          id: 'nz.ac.auckland.simulation-data-response',
+          version: '0.1.0',
+          payload: {
+            windowId: activeSubscription.windowId,
+            ownerId: activeSubscription.ownerId,
+            data,
+          },
+        });
+      });
+    },
     /**
      * @public
      * Generate the metadata associated with the plot which `index` is given.
