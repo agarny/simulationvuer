@@ -1043,6 +1043,12 @@ span.error {
 <style>
 /* Note: not sure why, but the following rules need to be global!? */
 
+.p-contextmenu-item-label,
+.p-select-option-label {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-size: 0.875rem;
+}
+
 .p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
     background: #F5F7FA !important;
 }
@@ -1055,10 +1061,5 @@ span.error {
 .p-select-option.p-select-option-selected {
     background: white !important;
     color: #8300BF !important;
-}
-
-.p-select-option-label {
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-    font-size: 0.875rem;
 }
 </style>
