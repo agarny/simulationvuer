@@ -821,12 +821,19 @@ export default {
   }
 }
 
-:deep(.p-floatlabel:has(input:focus)) label, :deep(.p-floatlabel:has(input:-webkit-autofill)) label, :deep(.p-floatlabel:has(textarea:focus)) label, :deep(.p-floatlabel:has(.p-inputwrapper-focus)) label {
+:deep(.p-floatlabel:has(input:focus)) label,
+:deep(.p-floatlabel:has(input:-webkit-autofill)) label,
+:deep(.p-floatlabel:has(textarea:focus)) label,
+:deep(.p-floatlabel:has(.p-inputwrapper-focus)) label {
   color: #8300BF;
 }
 
 :deep(.p-inputtext:enabled:focus) {
     border-color: #8300BF;
+}
+
+:deep(.p-progressbar-value) {
+  background-color: #8300BF !important;
 }
 
 :deep(.p-select:not(.p-disabled).p-focus) {
@@ -1036,8 +1043,10 @@ span.error {
 <style>
 /* Note: not sure why, but the following rules need to be global!? */
 
-.p-progressbar-value {
-  background-color: #8300BF !important;
+.p-contextmenu-item-label,
+.p-select-option-label {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-size: 0.875rem;
 }
 
 .p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
@@ -1052,10 +1061,5 @@ span.error {
 .p-select-option.p-select-option-selected {
     background: white !important;
     color: #8300BF !important;
-}
-
-.p-select-option-label {
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-    font-size: 0.875rem;
 }
 </style>
