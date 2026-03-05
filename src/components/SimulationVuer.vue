@@ -821,7 +821,10 @@ export default {
   }
 }
 
-:deep(.p-floatlabel:has(input:focus)) label, :deep(.p-floatlabel:has(input:-webkit-autofill)) label, :deep(.p-floatlabel:has(textarea:focus)) label, :deep(.p-floatlabel:has(.p-inputwrapper-focus)) label {
+:deep(.p-floatlabel:has(input:focus)) label,
+:deep(.p-floatlabel:has(input:-webkit-autofill)) label,
+:deep(.p-floatlabel:has(textarea:focus)) label,
+:deep(.p-floatlabel:has(.p-inputwrapper-focus)) label {
   color: #8300BF;
 }
 
