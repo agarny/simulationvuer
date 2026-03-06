@@ -358,7 +358,7 @@ export default {
         }
 
         const data = {
-          y: Array.from(simulationData[modelParameter]),
+          y: simulationData[modelParameter],
           title: `${activeSubscription.component}.${activeSubscription.variable}`,
         };
 
@@ -368,7 +368,7 @@ export default {
 
             return;
           } else {
-            voi ??= Array.from(simulationData.VOI);
+            voi ??= simulationData.VOI;
 
             data.x = voi;
           }
