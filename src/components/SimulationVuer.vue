@@ -78,13 +78,16 @@
         </div>
       </div>
     </div>
-    <div v-else class="opencor">
-      <OpenCOR
-        ref="opencorRef"
-        :omex="opencorOmexFile"
-        theme="light"
-        @simulationData="onSimulationData($event)"
-      />
+    <!-- The iframe is always present so it can start loading as early as possible. We just keep it hidden until
+         opencorOmexFile is available. -->
+    <div class="opencor">
+      <iframe
+        ref="opencorIframe"
+        class="opencor-iframe"
+        :src="iframeUrl"
+        @load="onIframeLoaded"
+        v-show="opencorOmexFile !== null"
+      ></iframe>
     </div>
   </div>
 </template>
@@ -92,10 +95,7 @@
 <script>
 import { PlotVuer } from "@abi-software/plotvuer";
 import "@abi-software/plotvuer/dist/style.css";
-import OpenCOR from "@opencor/opencor";
-import "@opencor/opencor/style.css";
 
-import { ElButton, ElDivider } from "element-plus";
 import { create, all } from "mathjs";
 
 import { evaluateValue, finaliseUi, OPENCOR_SOLVER_NAME } from "./common.js";
@@ -132,9 +132,6 @@ export default {
   components: {
     PlotVuer,
     SimulationVuerInput,
-    ElButton,
-    ElDivider,
-    OpenCOR,
   },
   props: {
     /**
@@ -200,6 +197,7 @@ export default {
       hasFinalisedUi: false,
       hasValidSimulationUiInfo: false,
       idType: idType,
+      iframeLoaded: false,
       instance: undefined,
       isMounted: false,
       isSimulationValid: true,
@@ -222,6 +220,13 @@ export default {
       uuid: null,
       activeSubscriptions: [],
     };
+  },
+  computed: {
+    iframeUrl() {
+      return import.meta.env.DEV
+        ? "/src/iframe/index.html"
+        : `${import.meta.env.BASE_URL || "/"}iframe.html`;
+    },
   },
   methods: {
     /**
@@ -335,7 +340,13 @@ export default {
         `${subscription.payload?.component}/${subscription.payload?.variable}`,
       );
 
-      this.$refs.opencorRef?.trackSimulationData(modelParameters);
+      this.$refs.opencorIframe?.contentWindow?.postMessage(
+        {
+          type: "trackSimulationData",
+          modelParameters,
+        },
+        "*",
+      );
     },
     /**
      * @public
@@ -394,7 +405,13 @@ export default {
         }
 
         if (modelParameters.length) {
-          this.$refs.opencorRef?.untrackSimulationData(modelParameters);
+          this.$refs.opencorIframe?.contentWindow?.postMessage(
+            {
+              type: "untrackSimulationData",
+              modelParameters,
+            },
+            "*",
+          );
         }
       }
 
@@ -412,7 +429,7 @@ export default {
      * @param `event`
      */
     onSimulationData(event) {
-      const simulationData = event.simulationData || {};
+      const simulationData = event.data?.simulationData || {};
       let voi;
 
       this.activeSubscriptions.forEach((activeSubscription) => {
@@ -451,6 +468,22 @@ export default {
           },
         });
       });
+    },
+    /**
+     * @private
+     * Helper that tries to send the `init` message with the OMEX value to the iframe so that it can pass it on to the
+     * OpenCOR component. The conditions are that the iframe has loaded and that the OMEX value is available.
+     */
+    tryInitOpencorIframe(omex) {
+      if (this.iframeLoaded && omex) {
+        this.$refs.opencorIframe.contentWindow?.postMessage(
+          {
+            type: "init",
+            omex,
+          },
+          "*",
+        );
+      }
     },
     /**
      * @public
@@ -834,6 +867,26 @@ export default {
         xmlhttp.send(JSON.stringify(this.retrieveRequest()));
       });
     },
+
+    /**
+     * @private
+     * Called when the iframe has loaded. We keep track of this via `iframeLoaded` since this may occur before
+     * `opencorOmexFile` gets set. We then try to send the `init` message with the OMEX value to the iframe so that it
+     * can pass it on to the OpenCOR component (if `opencorOmexFile` has been set).
+     */
+    onIframeLoaded() {
+      this.iframeLoaded = true;
+
+      this.tryInitOpencorIframe(this.opencorOmexFile);
+    },
+  },
+  watch: {
+    opencorOmexFile(newOpencorOmexFile) {
+      // `opencorOmexFile` has been set, so try to send the `init` message with the OMEX value to the iframe so that it
+      // can pass it on to the OpenCOR component (if the iframe has loaded).
+
+      this.tryInitOpencorIframe(newOpencorOmexFile);
+    },
   },
   created: function () {
     // Try to retrieve the UI information.
@@ -886,13 +939,27 @@ export default {
     this.isMounted = true;
 
     finaliseUi(this);
+
+    // Listen for the onSimulationData event from the OpenCOR iframe.
+
+    window.addEventListener("message", this.onSimulationData);
+  },
+  beforeUnmount: function () {
+    window.removeEventListener("message", this.onSimulationData);
   },
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+.opencor-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
 .simulation-vuer {
+  position: relative;
   --el-color-primary: #8300bf;
   --el-color-primary-light-7: #dab3ec;
   --el-color-primary-light-8: #e6ccf2;
@@ -917,29 +984,6 @@ export default {
   .el-loading-text {
     color: #8300bf;
   }
-}
-
-:deep(.p-floatlabel:has(input:focus)) label,
-:deep(.p-floatlabel:has(input:-webkit-autofill)) label,
-:deep(.p-floatlabel:has(textarea:focus)) label,
-:deep(.p-floatlabel:has(.p-inputwrapper-focus)) label {
-  color: #8300bf;
-}
-
-:deep(.p-inputtext:enabled:focus) {
-  border-color: #8300bf;
-}
-
-:deep(.p-progressbar-value) {
-  background-color: #8300bf !important;
-}
-
-:deep(.p-select:not(.p-disabled).p-focus) {
-  border-color: #8300bf;
-}
-
-:deep(.p-slider-range) {
-  background-color: #8300bf;
 }
 
 div.input {
@@ -1028,7 +1072,8 @@ div.main-right.x9 > .plotvuer_parent {
 }
 
 div.opencor {
-  height: 100%;
+  position: absolute;
+  inset: 0;
 }
 
 div.primary-button,
@@ -1135,41 +1180,5 @@ span.error {
       min-height: 180px;
     }
   }
-}
-</style>
-
-<style>
-/* Note: not sure why, but the following rules need to be global!? */
-
-.p-contextmenu-item-label,
-.p-select-option-label {
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    "Fira Sans",
-    "Droid Sans",
-    "Helvetica Neue",
-    sans-serif;
-  font-size: 0.875rem;
-}
-
-.p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
-  background: #f5f7fa !important;
-}
-
-.p-select-option.p-select-option-selected.p-focus {
-  background: #f5f7fa !important;
-  color: #8300bf !important;
-}
-
-.p-select-option.p-select-option-selected {
-  background: white !important;
-  color: #8300bf !important;
 }
 </style>

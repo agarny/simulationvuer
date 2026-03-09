@@ -46,6 +46,7 @@ export default defineConfig(({ command, mode }) => {
     resolve: {
       alias: {
         "~/": `${pathSrc}/`,
+        vue: "vue/dist/vue.esm-bundler.js",
       },
     },
   };
