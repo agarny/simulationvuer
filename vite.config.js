@@ -1,10 +1,12 @@
 import vue from "@vitejs/plugin-vue";
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import Components from "unplugin-vue-components/vite";
 import { defineConfig } from "vite";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pathSrc = path.resolve(__dirname, "./src");
 
 export default defineConfig(({ command, mode }) => {
