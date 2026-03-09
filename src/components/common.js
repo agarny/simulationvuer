@@ -26,7 +26,10 @@ export function updateUi(parent) {
     parent.simulationUiInfo.input.forEach((input) => {
       ++index;
 
-      parent.$refs.simInput[index].visible = (input.visible === undefined) ? true : evaluateValue(parent, input.visible);
+      parent.$refs.simInput[index].visible =
+        input.visible === undefined
+          ? true
+          : evaluateValue(parent, input.visible);
     });
   });
 }
@@ -35,21 +38,29 @@ export function finaliseUi(parent) {
   // Finalise our UI, but only if we haven't already done so, we are mounted,
   // and we have some valid simulation UI information.
 
-  if (!parent.hasFinalisedUi && parent.isMounted && parent.hasValidSimulationUiInfo) {
+  if (
+    !parent.hasFinalisedUi &&
+    parent.isMounted &&
+    parent.hasValidSimulationUiInfo
+  ) {
     // Configure the PlotVuer's.
 
-    parent.$refs.output.classList.add("x" + parent.simulationUiInfo.output.plots.length);
+    parent.$refs.output.classList.add(
+      `x${parent.simulationUiInfo.output.plots.length}`,
+    );
 
     // Initialise the simulation results.
 
     let index = -1;
 
     parent.simulationUiInfo.output.plots.forEach(() => {
-      parent.simulationResults[++index] = [{
-        x: [],
-        y: [],
-        type: "scatter",
-      }];
+      parent.simulationResults[++index] = [
+        {
+          x: [],
+          y: [],
+          type: "scatter",
+        },
+      ];
     });
 
     // Make sure that our UI is up to date.

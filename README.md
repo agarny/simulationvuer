@@ -2,10 +2,10 @@
 
 SimulationVuer is a [Vue](https://vuejs.org/) 3 component used in the [SPARC portal](https://sparc.science/) to run some simulation-based [datasets](https://sparc.science/data?type=dataset) that include a [JSON](https://json.org/) file. That JSON file is used by SimulationVuer to create a user interface (Fig. 1) which can then be used by someone to configure a simulation before running it.
 
-The simulation is run either on [oSPARC](https://osparc.io/) or in a user's browser, depending on how the simulation-based dataset is referenced (see the  `id` property below). In the oSPARC case, SimulationVuer relies on the [SPARC API](https://github.com/nih-sparc/sparc-api) to ask oSPARC to run the model and to retrieve the simulation results, which can then be visualised and interacted with using the interface.
+The simulation is run either on [oSPARC](https://osparc.io/) or in a user's browser, depending on how the simulation-based dataset is referenced (see the `id` property below). In the oSPARC case, SimulationVuer relies on the [SPARC API](https://github.com/nih-sparc/sparc-api) to ask oSPARC to run the model and to retrieve the simulation results, which can then be visualised and interacted with using the interface.
 
 ![SimulationVuer](res/135.png)
-*Figure 1: user interface for dataset [135](https://sparc.science/datasets/simulationviewer?id=135).*
+_Figure 1: user interface for dataset [135](https://sparc.science/datasets/simulationviewer?id=135)._
 
 ## How to use
 
@@ -18,7 +18,7 @@ npm install @abi-software/simulationvuer
 To include the package in your script:
 
 ```javascript
-import { SimulationVuer } from '@abi-software/simulationvuer';
+import { SimulationVuer } from "@abi-software/simulationvuer";
 ```
 
 To register the package as a Vue component:
@@ -38,16 +38,17 @@ export default {
 The above registers the SimulationVuer component into the global scope. You can now use SimulationVuer in your Vue template as follows:
 
 ```html
-<SimulationVuer :apiLocation="apiLocation" :id=123 />
+<SimulationVuer :apiLocation="apiLocation" :id="123" />
 ```
 
 where:
- - `apiLocation` is the URL of a running copy of the [SPARC API](https://github.com/nih-sparc/sparc-api); and
- - `id` is:
-   - the id of a SPARC simulation-based dataset (as a `Number`, e.g., `135`);
-   - the [PMR](https://models.physiomeproject.org/) path to an [OMEX](https://combinearchive.org/) file (as a `String`, e.g., `workspace/b7c/rawfile/e0ae8d2d56aaaa091e23e1ee7e84cacbda1dfb6b/135.omex`);
-   - the direct URL to an OMEX file (as a `String`, e.g., `https://raw.githubusercontent.com/opencor/webapp/refs/heads/main/tests/models/ui/135.omex`); or
-   - a raw OMEX file (as a `Uint8Array`).
+
+- `apiLocation` is the URL of a running copy of the [SPARC API](https://github.com/nih-sparc/sparc-api); and
+- `id` is:
+  - the id of a SPARC simulation-based dataset (as a `Number`, e.g., `135`);
+  - the [PMR](https://models.physiomeproject.org/) path to an [OMEX](https://combinearchive.org/) file (as a `String`, e.g., `workspace/b7c/rawfile/e0ae8d2d56aaaa091e23e1ee7e84cacbda1dfb6b/135.omex`);
+  - the direct URL to an OMEX file (as a `String`, e.g., `https://raw.githubusercontent.com/opencor/webapp/refs/heads/main/tests/models/ui/135.omex`); or
+  - a raw OMEX file (as a `Uint8Array`).
 
 Note that a simulation will be run on oSPARC if the `id` references a SPARC simulation-based dataset, in a user's browser otherwise.
 

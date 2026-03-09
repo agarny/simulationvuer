@@ -8,6 +8,8 @@
     "build-app": "vite build --mode app",
     "vuese-gen": "node vuese-generator.js",
     "vuese-watch": "node vuese-generator.js watch",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .js,.vue",
     "release:beta": "npm version prerelease --preid=beta; npm publish --tag beta",
     "release:minor": "npm version minor; npm publish",
     "release:patch": "npm version patch;  npm publish",
@@ -26,6 +28,7 @@
     "vue": "^3.4.21"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.28.6",
     "@vitejs/plugin-vue": "^5.0.3",
     "@vuese/markdown-render": "^2.11.3",
     "babel-eslint": "^10.1.0",
@@ -52,7 +55,8 @@
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser",
+      "requireConfigFile": false
     },
     "rules": {}
   },
