@@ -227,7 +227,7 @@ export default {
     /**
      * @public
      * Add a data subscription.
-     * @arg `subscription `
+     * @param `subscription`
      */
     addDataSubscription(subscription) {
       // Check that the subscription is valid.
@@ -340,7 +340,7 @@ export default {
     /**
      * @public
      * Remove a data subscription.
-     * @arg `subscriptionId `
+     * @param `subscriptionId`
      */
     removeDataSubscription(subscriptionId) {
       // Ask OpenCOR to stop tracking the simulation data associated with the subscription's component and variable (and
@@ -409,7 +409,7 @@ export default {
     /**
      * @public
      * Let the outside world know that we have received some simulation data from OpenCOR by emitting a `data-notification` event.
-     * @arg `event`
+     * @param `event`
      */
     onSimulationData(event) {
       const simulationData = event.simulationData || {};
@@ -455,7 +455,7 @@ export default {
     /**
      * @public
      * Generate the metadata associated with the plot which `index` is given.
-     * @arg `index`
+     * @param `index`
      */
     plotMetadata(index) {
       return {
@@ -470,7 +470,7 @@ export default {
     /**
      * @public
      * Build the simulation UI using `simulationUiInfo`, a JSON object that describes the contents of the simulation UI.
-     * @arg `simulationUiInfo`
+     * @param `simulationUiInfo`
      */
     buildSimulationUi(simulationUiInfo) {
       // Keep track of the simulation UI information.
@@ -563,7 +563,7 @@ export default {
     /**
      * @private
      * Open the given `url` in a new browser tab, making sure to do so safely.
-     * @arg url
+     * @param `url`
      */
     openUrl(url) {
       const a = document.createElement("a");
@@ -681,7 +681,7 @@ export default {
      * @public
      * Process the simulation results retrieved by `checkSimulation`. The simulation results are post-processed, if
      * needed, and then readied for use by `PlotVuer`.
-     * @arg `results`
+     * @param `results`
      */
     processSimulationResults(results) {
       // Convert, if needed, the results to a JSON format that is compatible
@@ -735,7 +735,7 @@ export default {
     /**
      * @public
      * Show an HTTP issue using the given `xmlhttp`.
-     * @arg `xmlhttp`
+     * @param `xmlhttp`
      */
     showHttpIssue(xmlhttp) {
       this.isSimulationValid = false;
@@ -748,7 +748,7 @@ export default {
      * Check the progress of the simulation using the given `data`, a JSON object that contains the simulation job ID,
      * as well as the solver name and version. This method is first called by `startSimulation` and then every second by
      * itself until the simulation is finished.
-     * @arg `data`
+     * @param `data`
      */
     checkSimulation(data) {
       // Check the simulation.
