@@ -64,7 +64,16 @@
         <div class="main-right" v-show="!isSimulationValid">
           <p class="default error">
             <span class="error">Error:</span>
-            <span v-html="errorMessage"></span>.
+            {{ errorMessage }}
+            <span v-if="errorStatus">
+              (<a
+                :href="`https://httpstatuses.com/${errorStatus}`"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ errorStatus }} </a
+              >) </span
+            >.
           </p>
         </div>
       </div>
@@ -186,6 +195,7 @@ export default {
 
     return {
       errorMessage: "",
+      errorStatus: null,
       fileManager: undefined,
       hasFinalisedUi: false,
       hasValidSimulationUiInfo: false,
@@ -730,7 +740,8 @@ export default {
     showHttpIssue(xmlhttp) {
       this.isSimulationValid = false;
       this.showUserMessage = false;
-      this.errorMessage = `${xmlhttp.statusText.toLowerCase()} (<a href='https://httpstatuses.com/${xmlhttp.status}/' target='_blank'>${xmlhttp.status}</a>)`;
+      this.errorMessage = xmlhttp.statusText.toLowerCase();
+      this.errorStatus = xmlhttp.status;
     },
     /**
      * @public
@@ -812,6 +823,7 @@ export default {
               } else {
                 this.showUserMessage = false;
                 this.errorMessage = response.description;
+                this.errorStatus = null;
               }
             } else {
               this.showHttpIssue(xmlhttp);
@@ -849,6 +861,7 @@ export default {
             } else {
               this.errorMessage =
                 "the simulation dataset could not be retrieved";
+              this.errorStatus = null;
             }
           }
         };
