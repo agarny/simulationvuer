@@ -8,6 +8,8 @@
     "build-app": "vite build --mode app",
     "vuese-gen": "node vuese-generator.js",
     "vuese-watch": "node vuese-generator.js watch",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .js,.vue",
     "release:beta": "npm version prerelease --preid=beta; npm publish --tag beta",
     "release:minor": "npm version minor; npm publish",
     "release:patch": "npm version patch;  npm publish",
