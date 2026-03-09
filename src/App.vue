@@ -72,9 +72,11 @@
           <span>
             <strong
               >Dataset
-              <a :href="datasetUrl(resource.id)" target="_blank">{{
-                resource.id
-              }}</a
+              <a
+                :href="datasetUrl(resource.id)"
+                target="_blank"
+                rel="noopener noreferrer"
+                >{{ resource.id }}</a
               >:</strong
             >
             {{ resource.description }}

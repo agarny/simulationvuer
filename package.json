@@ -9,6 +9,7 @@
     "vuese-gen": "node vuese-generator.js",
     "vuese-watch": "node vuese-generator.js watch",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint . --ext .js,.vue",
     "release:beta": "npm version prerelease --preid=beta; npm publish --tag beta",
     "release:minor": "npm version minor; npm publish",
@@ -37,7 +38,10 @@
     "chokidar": "^3.6.0",
     "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-vue": "^9.20.1",
+    "prettier": "^3.0.0",
     "sass": "^1.70.0",
     "vite": "^5.0.12",
     "vitepress": "^1.0.0-rc.45",
@@ -47,13 +51,17 @@
   },
   "eslintConfig": {
     "root": true,
+    "plugins": [
+      "prettier"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:prettier/recommended",
+      "plugin:vue/essential"
+    ],
     "env": {
       "node": true
     },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
     "parserOptions": {
       "parser": "@babel/eslint-parser",
       "requireConfigFile": false

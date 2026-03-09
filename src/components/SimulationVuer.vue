@@ -64,7 +64,16 @@
         <div class="main-right" v-show="!isSimulationValid">
           <p class="default error">
             <span class="error">Error:</span>
-            <span v-html="errorMessage"></span>.
+            {{ errorMessage }}
+            <span v-if="errorStatus">
+              (<a
+                :href="`https://httpstatuses.com/${errorStatus}`"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ errorStatus }} </a
+              >) </span
+            >.
           </p>
         </div>
       </div>
@@ -186,6 +195,7 @@ export default {
 
     return {
       errorMessage: "",
+      errorStatus: null,
       fileManager: undefined,
       hasFinalisedUi: false,
       hasValidSimulationUiInfo: false,
@@ -217,7 +227,7 @@ export default {
     /**
      * @public
      * Add a data subscription.
-     * @arg `subscription `
+     * @param `subscription`
      */
     addDataSubscription(subscription) {
       // Check that the subscription is valid.
@@ -330,7 +340,7 @@ export default {
     /**
      * @public
      * Remove a data subscription.
-     * @arg `subscriptionId `
+     * @param `subscriptionId`
      */
     removeDataSubscription(subscriptionId) {
       // Ask OpenCOR to stop tracking the simulation data associated with the subscription's component and variable (and
@@ -399,7 +409,7 @@ export default {
     /**
      * @public
      * Let the outside world know that we have received some simulation data from OpenCOR by emitting a `data-notification` event.
-     * @arg `event`
+     * @param `event`
      */
     onSimulationData(event) {
       const simulationData = event.simulationData || {};
@@ -445,7 +455,7 @@ export default {
     /**
      * @public
      * Generate the metadata associated with the plot which `index` is given.
-     * @arg `index`
+     * @param `index`
      */
     plotMetadata(index) {
       return {
@@ -460,7 +470,7 @@ export default {
     /**
      * @public
      * Build the simulation UI using `simulationUiInfo`, a JSON object that describes the contents of the simulation UI.
-     * @arg `simulationUiInfo`
+     * @param `simulationUiInfo`
      */
     buildSimulationUi(simulationUiInfo) {
       // Keep track of the simulation UI information.
@@ -551,13 +561,32 @@ export default {
       });
     },
     /**
+     * @private
+     * Open the given `url` in a new browser tab, making sure to do so safely.
+     * @param `url`
+     */
+    openUrl(url) {
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.style.display = "none";
+
+      document.body.appendChild(a);
+
+      a.click();
+
+      document.body.removeChild(a);
+    },
+    /**
      * @public
      * Run the simulation-based dataset directly on oSPARC. Not all simulation-based datasets can be run directly on
      * oSPARC, but for those that can the simulation UI shows a `Run on oSPARC` button which, when clicked, calls this
      * method.
      */
     runOnOsparc() {
-      window.open(`https://osparc.io/study/${this.uuid}`, "_blank");
+      this.openUrl(`https://osparc.io/study/${this.uuid}`);
     },
     /**
      * @public
@@ -565,10 +594,7 @@ export default {
      * clicked, calls this method.
      */
     viewDataset() {
-      window.open(
-        `https://sparc.science/datasets/${this.id}?type=dataset`,
-        "_blank",
-      );
+      this.openUrl(`https://sparc.science/datasets/${this.id}?type=dataset`);
     },
     /**
      * @public
@@ -577,8 +603,7 @@ export default {
      */
     viewWorkspace() {
       const url = PMR_URL + this.id;
-
-      window.open(url.substring(0, url.lastIndexOf("/")), "_blank");
+      this.openUrl(url.substring(0, url.lastIndexOf("/")));
     },
     /**
      * @public
@@ -656,7 +681,7 @@ export default {
      * @public
      * Process the simulation results retrieved by `checkSimulation`. The simulation results are post-processed, if
      * needed, and then readied for use by `PlotVuer`.
-     * @arg `results`
+     * @param `results`
      */
     processSimulationResults(results) {
       // Convert, if needed, the results to a JSON format that is compatible
@@ -710,19 +735,20 @@ export default {
     /**
      * @public
      * Show an HTTP issue using the given `xmlhttp`.
-     * @arg `xmlhttp`
+     * @param `xmlhttp`
      */
     showHttpIssue(xmlhttp) {
       this.isSimulationValid = false;
       this.showUserMessage = false;
-      this.errorMessage = `${xmlhttp.statusText.toLowerCase()} (<a href='https://httpstatuses.com/${xmlhttp.status}/' target='_blank'>${xmlhttp.status}</a>)`;
+      this.errorMessage = xmlhttp.statusText.toLowerCase();
+      this.errorStatus = xmlhttp.status;
     },
     /**
      * @public
      * Check the progress of the simulation using the given `data`, a JSON object that contains the simulation job ID,
      * as well as the solver name and version. This method is first called by `startSimulation` and then every second by
      * itself until the simulation is finished.
-     * @arg `data`
+     * @param `data`
      */
     checkSimulation(data) {
       // Check the simulation.
@@ -758,6 +784,7 @@ export default {
             } else {
               this.showUserMessage = false;
               this.errorMessage = response.description;
+              this.errorStatus = null;
             }
           } else {
             this.showHttpIssue(xmlhttp);
@@ -797,6 +824,7 @@ export default {
               } else {
                 this.showUserMessage = false;
                 this.errorMessage = response.description;
+                this.errorStatus = null;
               }
             } else {
               this.showHttpIssue(xmlhttp);
@@ -834,6 +862,7 @@ export default {
             } else {
               this.errorMessage =
                 "the simulation dataset could not be retrieved";
+              this.errorStatus = null;
             }
           }
         };

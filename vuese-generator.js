@@ -18,59 +18,49 @@ const componentsDir = "src/components";
 const components = ["SimulationVuer.vue"];
 const outputDir = "docs/components";
 
-function generateMarkdown(file) {
+async function generateMarkdown(file) {
   const fileWithPath = `${componentsDir}/${file}`;
   const fileContent = fs.readFileSync(fileWithPath, "utf-8");
 
   try {
-    // const parserResult = parser(fileContent)
-    const parserResult = parseSource(fileContent, fileWithPath);
-    parserResult.then((result) => {
-      const {
-        displayName: name,
-        description: desc,
-        props,
-        events,
-        methods,
-      } = result;
+    const result = await parseSource(fileContent, fileWithPath);
+    const {
+      displayName: name,
+      description: desc,
+      props,
+      events,
+      methods,
+    } = result;
 
-      // transform props to vuese styles
-      const parseResult = {
-        name: name,
-        componentDesc: {
-          default: [desc],
-        },
-        props: transformData(props),
-        events: transformData(events),
-        methods: transformData(methods),
-      };
-      parseResult.name = "SimulationVuer"; // Because there has another name prop in component
-      const r = new Render(parseResult);
-      const markdownResult = r.renderMarkdown();
-      const markdownContent = markdownResult.content;
-      const componentName = path.basename(fileWithPath, ".vue");
+    // transform props to vuese styles
+    const parseResult = {
+      name: name,
+      componentDesc: {
+        default: [desc],
+      },
+      props: transformData(props),
+      events: transformData(events),
+      methods: transformData(methods),
+    };
+    parseResult.name = "SimulationVuer"; // Because there has another name prop in component
+    const r = new Render(parseResult);
+    const markdownResult = r.renderMarkdown();
+    const markdownContent = markdownResult.content;
+    const componentName = path.basename(fileWithPath, ".vue");
 
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir);
-      }
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir);
+    }
 
-      fs.writeFile(
-        `${outputDir}/${componentName}.md`,
-        markdownContent,
-        (err) => {
-          if (err) {
-            console.error(
-              `Error writing markdown file for ${componentName}`,
-              err,
-            );
-          } else {
-            console.log(`Markdown file for ${componentName} is generated!`);
-          }
-        },
-      );
-    });
+    await fs.promises.writeFile(
+      `${outputDir}/${componentName}.md`,
+      markdownContent,
+    );
+
+    console.log(`Markdown file for ${componentName} is generated!`);
   } catch (e) {
-    console.error(e);
+    // log parse or write errors so the developer knows something went wrong
+    console.error(`Failed to generate markdown for ${file}:`, e);
   }
 }
 
