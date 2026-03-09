@@ -5,20 +5,20 @@
 // Read more: https://github.com/vuejs/core/pull/3399
 export {}
 
-declare module 'vue' {
+declare module "vue" {
   export interface GlobalComponents {
-    ElButton: typeof import('element-plus/es')['ElButton']
-    ElDivider: typeof import('element-plus/es')['ElDivider']
-    ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
-    ElOption: typeof import('element-plus/es')['ElOption']
-    ElSelect: typeof import('element-plus/es')['ElSelect']
-    ElSlider: typeof import('element-plus/es')['ElSlider']
-    RouterLink: typeof import('vue-router')['RouterLink']
-    RouterView: typeof import('vue-router')['RouterView']
-    SimulationVuer: typeof import('./components/SimulationVuer.vue')['default']
-    SimulationVuerInput: typeof import('./components/SimulationVuerInput.vue')['default']
+    ElButton: (typeof import("element-plus/es"))["ElButton"];
+    ElDivider: (typeof import("element-plus/es"))["ElDivider"];
+    ElInputNumber: (typeof import("element-plus/es"))["ElInputNumber"];
+    ElOption: (typeof import("element-plus/es"))["ElOption"];
+    ElSelect: (typeof import("element-plus/es"))["ElSelect"];
+    ElSlider: (typeof import("element-plus/es"))["ElSlider"];
+    RouterLink: (typeof import("vue-router"))["RouterLink"];
+    RouterView: (typeof import("vue-router"))["RouterView"];
+    SimulationVuer: (typeof import("./components/SimulationVuer.vue"))["default"];
+    SimulationVuerInput: (typeof import("./components/SimulationVuerInput.vue"))["default"];
   }
   export interface ComponentCustomProperties {
-    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
+    vLoading: (typeof import("element-plus/es"))["ElLoadingDirective"];
   }
 }

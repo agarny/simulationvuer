@@ -20,7 +20,8 @@
       }
 
       & table tr {
-        th, td {
+        th,
+        td {
           vertical-align: top;
 
           code {

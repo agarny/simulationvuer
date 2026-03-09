@@ -1,14 +1,24 @@
 <template>
-  <div class="simulation-vuer" v-loading="showUserMessage" :element-loading-text="userMessage">
+  <div
+    class="simulation-vuer"
+    v-loading="showUserMessage"
+    :element-loading-text="userMessage"
+  >
     <div class="container" v-if="opencorOmexFile === null">
-      <p v-if="!hasValidSimulationUiInfo && !showUserMessage" class="default error"><span class="error">Error:</span> {{ errorMessage }}.</p>
+      <p
+        v-if="!hasValidSimulationUiInfo && !showUserMessage"
+        class="default error"
+      >
+        <span class="error">Error:</span> {{ errorMessage }}.
+      </p>
       <div class="main" v-if="hasValidSimulationUiInfo">
-        <div class="main-left" :class="{'with-buttons': uuid}">
+        <div class="main-left" :class="{ 'with-buttons': uuid }">
           <p class="default name">{{ name }}</p>
           <el-divider></el-divider>
           <p class="default input-parameters">Input parameters</p>
           <div class="input scrollbar">
-            <SimulationVuerInput v-for="(input, index) in simulationUiInfo.input"
+            <SimulationVuerInput
+              v-for="(input, index) in simulationUiInfo.input"
               ref="simInput"
               :defaultValue="input.defaultValue"
               :key="`input-${index}`"
@@ -21,19 +31,28 @@
           </div>
           <div class="buttons-container">
             <div class="primary-button">
-              <el-button type="primary" size="small" @click="startSimulation()">Run Simulation</el-button>
+              <el-button type="primary" size="small" @click="startSimulation()"
+                >Run Simulation</el-button
+              >
             </div>
             <div class="secondary-button" v-if="uuid">
-              <el-button size="small" @click="runOnOsparc()">Run on oSPARC</el-button>
+              <el-button size="small" @click="runOnOsparc()"
+                >Run on oSPARC</el-button
+              >
             </div>
             <div class="secondary-button">
-              <el-button size="small" @click="viewDataset()">View Dataset</el-button>
+              <el-button size="small" @click="viewDataset()"
+                >View Dataset</el-button
+              >
             </div>
-            <p class="default note" v-if="uuid">Additional parameters are available on oSPARC</p>
+            <p class="default note" v-if="uuid">
+              Additional parameters are available on oSPARC
+            </p>
           </div>
         </div>
         <div class="main-right" ref="output" v-show="isSimulationValid">
-          <PlotVuer v-for="(_outputPlot, index) in simulationUiInfo.output.plots"
+          <PlotVuer
+            v-for="(_outputPlot, index) in simulationUiInfo.output.plots"
             :key="`output-${index}`"
             :metadata="plotMetadata(index)"
             :data-source="{ data: simulationResults[index] }"
@@ -43,7 +62,10 @@
           />
         </div>
         <div class="main-right" v-show="!isSimulationValid">
-          <p class="default error"><span class="error">Error:</span> <span v-html="errorMessage"></span>.</p>
+          <p class="default error">
+            <span class="error">Error:</span>
+            <span v-html="errorMessage"></span>.
+          </p>
         </div>
       </div>
     </div>
@@ -61,8 +83,8 @@
 <script>
 import { PlotVuer } from "@abi-software/plotvuer";
 import "@abi-software/plotvuer/dist/style.css";
-import OpenCOR from '@opencor/opencor';
-import '@opencor/opencor/style.css';
+import OpenCOR from "@opencor/opencor";
+import "@opencor/opencor/style.css";
 
 import { ElButton, ElDivider, ElLoading } from "element-plus";
 import { create, all } from "mathjs";
@@ -76,10 +98,10 @@ const PMR_URL = "https://models.physiomeproject.org/";
 const math = create(all, {});
 
 const IdType = Object.freeze({
-  DATASET_ID: 'dataset_id',
-  DATASET_URL: 'dataset_url',
-  PMR_PATH: 'pmr_path',
-  RAW_COMBINE_ARCHIVE: 'raw_combine_archive',
+  DATASET_ID: "dataset_id",
+  DATASET_URL: "dataset_url",
+  PMR_PATH: "pmr_path",
+  RAW_COMBINE_ARCHIVE: "raw_combine_archive",
 });
 
 function isWebProtocol(urlString) {
@@ -153,7 +175,10 @@ export default {
             const datasetInfo = JSON.parse(xmlhttp.responseText);
 
             this.name = datasetInfo.name;
-            this.uuid = (datasetInfo.study !== undefined) ? datasetInfo.study.uuid : undefined;
+            this.uuid =
+              datasetInfo.study !== undefined
+                ? datasetInfo.study.uuid
+                : undefined;
           }
         }
       };
@@ -198,35 +223,41 @@ export default {
     addDataSubscription(subscription) {
       // Check that the subscription is valid.
 
-      if (!subscription || typeof subscription !== 'object') {
-        console.error('addDataSubscription: subscription must be an object.');
+      if (!subscription || typeof subscription !== "object") {
+        console.error("addDataSubscription: subscription must be an object.");
 
         return;
       }
 
       // Check that the subscription has the expected ID.
 
-      const EXPECTED_ID = 'nz.ac.auckland.simulation-data-request';
+      const EXPECTED_ID = "nz.ac.auckland.simulation-data-request";
       const EXPECTED_MAJOR_VERSION = 0;
 
       if (subscription.id !== EXPECTED_ID) {
-        console.warn(`addDataSubscription: invalid ID (expected '${EXPECTED_ID}' but got '${subscription.id}').`);
+        console.warn(
+          `addDataSubscription: invalid ID (expected '${EXPECTED_ID}' but got '${subscription.id}').`,
+        );
 
         return;
       }
 
       // Check that the version is valid and compatible with what we expect.
 
-      if (typeof subscription.version !== 'string') {
-        console.warn(`addDataSubscription: missing or non-string version ('${subscription.version}').`);
+      if (typeof subscription.version !== "string") {
+        console.warn(
+          `addDataSubscription: missing or non-string version ('${subscription.version}').`,
+        );
 
         return;
       }
 
-      const versionParts = subscription.version.split('.');
+      const versionParts = subscription.version.split(".");
 
       if (versionParts.length < 1 || !/^[0-9]+$/.test(versionParts[0])) {
-        console.warn(`addDataSubscription: malformed version ('${subscription.version}').`);
+        console.warn(
+          `addDataSubscription: malformed version ('${subscription.version}').`,
+        );
 
         return;
       }
@@ -234,13 +265,17 @@ export default {
       const subscriptionMajorVersion = parseInt(versionParts[0], 10);
 
       if (Number.isNaN(subscriptionMajorVersion)) {
-        console.warn(`addDataSubscription: could not parse the major version from ('${subscription.version}')`);
+        console.warn(
+          `addDataSubscription: could not parse the major version from ('${subscription.version}')`,
+        );
 
         return;
       }
 
       if (subscriptionMajorVersion !== EXPECTED_MAJOR_VERSION) {
-        console.warn(`addDataSubscription: version mismatch (expected v${EXPECTED_MAJOR_VERSION}.y.z but got v${subscription.version}).`);
+        console.warn(
+          `addDataSubscription: version mismatch (expected v${EXPECTED_MAJOR_VERSION}.y.z but got v${subscription.version}).`,
+        );
 
         return;
       }
@@ -251,23 +286,25 @@ export default {
       const missing = [];
 
       if (payload.windowId == null) {
-        missing.push('windowId');
+        missing.push("windowId");
       }
 
       if (payload.ownerId == null) {
-        missing.push('ownerId');
+        missing.push("ownerId");
       }
 
       if (!payload.component) {
-        missing.push('component');
+        missing.push("component");
       }
 
       if (!payload.variable) {
-        missing.push('variable');
+        missing.push("variable");
       }
 
       if (missing.length) {
-        console.warn(`addDataSubscription: payload missing fields: ${missing.join(', ')}.`);
+        console.warn(
+          `addDataSubscription: payload missing fields: ${missing.join(", ")}.`,
+        );
 
         return;
       }
@@ -282,10 +319,12 @@ export default {
       const modelParameters = [];
 
       if (subscription.payload?.withVOI) {
-        modelParameters.push('VOI');
+        modelParameters.push("VOI");
       }
 
-      modelParameters.push(`${subscription.payload?.component}/${subscription.payload?.variable}`);
+      modelParameters.push(
+        `${subscription.payload?.component}/${subscription.payload?.variable}`,
+      );
 
       this.$refs.opencorRef?.trackSimulationData(modelParameters);
     },
@@ -298,36 +337,51 @@ export default {
       // Ask OpenCOR to stop tracking the simulation data associated with the subscription's component and variable (and
       // the VOI, if requested and unless it's requested by another subscription).
 
-      const subscription = this.activeSubscriptions.find((activeSubscription) => {
-        return activeSubscription.windowId === subscriptionId;
-      });
+      const subscription = this.activeSubscriptions.find(
+        (activeSubscription) => {
+          return activeSubscription.windowId === subscriptionId;
+        },
+      );
 
       if (!subscription) {
-        console.warn(`removeDataSubscription: no active subscription found for id ${subscriptionId}.`);
+        console.warn(
+          `removeDataSubscription: no active subscription found for id ${subscriptionId}.`,
+        );
 
         return;
       }
 
-      const isVoiTrackedByAnotherSubscription = this.activeSubscriptions.some((activeSubscription) => {
-        return activeSubscription.windowId !== subscriptionId && activeSubscription.withVOI;
-      });
-      const isModelParameterTrackedByAnotherSubscription = this.activeSubscriptions.some((activeSubscription) => {
-        return (
-          activeSubscription.windowId !== subscriptionId &&
-          activeSubscription.component === subscription.component &&
-          activeSubscription.variable === subscription.variable
-        );
-      });
+      const isVoiTrackedByAnotherSubscription = this.activeSubscriptions.some(
+        (activeSubscription) => {
+          return (
+            activeSubscription.windowId !== subscriptionId &&
+            activeSubscription.withVOI
+          );
+        },
+      );
+      const isModelParameterTrackedByAnotherSubscription =
+        this.activeSubscriptions.some((activeSubscription) => {
+          return (
+            activeSubscription.windowId !== subscriptionId &&
+            activeSubscription.component === subscription.component &&
+            activeSubscription.variable === subscription.variable
+          );
+        });
 
-      if (!isVoiTrackedByAnotherSubscription || !isModelParameterTrackedByAnotherSubscription) {
+      if (
+        !isVoiTrackedByAnotherSubscription ||
+        !isModelParameterTrackedByAnotherSubscription
+      ) {
         const modelParameters = [];
 
         if (subscription.withVOI && !isVoiTrackedByAnotherSubscription) {
-          modelParameters.push('VOI');
+          modelParameters.push("VOI");
         }
 
         if (!isModelParameterTrackedByAnotherSubscription) {
-          modelParameters.push(`${subscription.component}/${subscription.variable}`);
+          modelParameters.push(
+            `${subscription.component}/${subscription.variable}`,
+          );
         }
 
         if (modelParameters.length) {
@@ -337,9 +391,11 @@ export default {
 
       // Remove the subscription from our list of active subscriptions.
 
-      this.activeSubscriptions = this.activeSubscriptions.filter((activeSubscription) => {
-        return activeSubscription.windowId !== subscriptionId;
-      });
+      this.activeSubscriptions = this.activeSubscriptions.filter(
+        (activeSubscription) => {
+          return activeSubscription.windowId !== subscriptionId;
+        },
+      );
     },
     /**
      * @public
@@ -366,7 +422,7 @@ export default {
 
         if (activeSubscription.withVOI) {
           if (simulationData.VOI == null) {
-            console.warn('onSimulationData: no data for VOI.');
+            console.warn("onSimulationData: no data for VOI.");
 
             return;
           } else {
@@ -376,9 +432,9 @@ export default {
           }
         }
 
-        this.$emit('data-notification', {
-          id: 'nz.ac.auckland.simulation-data-response',
-          version: '0.1.0',
+        this.$emit("data-notification", {
+          id: "nz.ac.auckland.simulation-data-response",
+          version: "0.1.0",
           payload: {
             windowId: activeSubscription.windowId,
             ownerId: activeSubscription.ownerId,
@@ -425,7 +481,7 @@ export default {
       // Retrieve and keep track of the solver to be used for the simulation.
 
       this.simulationUiInfo.simulation.solvers.forEach((solver) => {
-        if ((solver.if === undefined) || evaluateValue(this, solver.if)) {
+        if (solver.if === undefined || evaluateValue(this, solver.if)) {
           this.solver = solver;
         }
       });
@@ -510,7 +566,10 @@ export default {
      * clicked, calls this method.
      */
     viewDataset() {
-      window.open(`https://sparc.science/datasets/${this.id}?type=dataset`, "_blank");
+      window.open(
+        `https://sparc.science/datasets/${this.id}?type=dataset`,
+        "_blank",
+      );
     },
     /**
      * @public
@@ -558,7 +617,7 @@ export default {
      */
     retrieveRequest() {
       const request = {
-        solver: this.solver
+        solver: this.solver,
       };
 
       if (this.opencorBasedSimulation) {
@@ -567,11 +626,15 @@ export default {
           json_config: {},
         };
 
-        if ((this.simulationUiInfo.simulation.opencor.endingPoint !== undefined)
-          && (this.simulationUiInfo.simulation.opencor.pointInterval !== undefined)) {
+        if (
+          this.simulationUiInfo.simulation.opencor.endingPoint !== undefined &&
+          this.simulationUiInfo.simulation.opencor.pointInterval !== undefined
+        ) {
           request.opencor.json_config.simulation = {
-            "Ending point": this.simulationUiInfo.simulation.opencor.endingPoint,
-            "Point interval": this.simulationUiInfo.simulation.opencor.pointInterval,
+            "Ending point":
+              this.simulationUiInfo.simulation.opencor.endingPoint,
+            "Point interval":
+              this.simulationUiInfo.simulation.opencor.pointInterval,
           };
         }
 
@@ -600,7 +663,7 @@ export default {
       // Convert, if needed, the results to a JSON format that is compatible
       // with our OpenCOR results.
 
-      if (typeof (results) === "string") {
+      if (typeof results === "string") {
         const SPACES = /[ \t]+/g;
         const lines = results.trim().split("\n");
         const iMax = lines[0].trim().split(SPACES).length;
@@ -757,7 +820,10 @@ export default {
       this.$nextTick(() => {
         const xmlhttp = new XMLHttpRequest();
 
-        xmlhttp.open("GET", `${this.apiLocation}/simulation_ui_file/${this.id}`);
+        xmlhttp.open(
+          "GET",
+          `${this.apiLocation}/simulation_ui_file/${this.id}`,
+        );
         xmlhttp.onreadystatechange = () => {
           if (xmlhttp.readyState === 4) {
             this.showUserMessage = false;
@@ -767,7 +833,8 @@ export default {
                 this.buildSimulationUi(JSON.parse(xmlhttp.responseText));
               });
             } else {
-              this.errorMessage = "the simulation dataset could not be retrieved";
+              this.errorMessage =
+                "the simulation dataset could not be retrieved";
             }
           }
         };
@@ -777,7 +844,8 @@ export default {
       this.opencorOmexFile = this.id;
     } else if (this.idType === IdType.PMR_PATH) {
       this.opencorOmexFile = `${PMR_URL}${this.id}`;
-    } else { // IdType.RAW_COMBINE_ARCHIVE
+    } else {
+      // IdType.RAW_COMBINE_ARCHIVE
       this.opencorOmexFile = this.id;
     }
   },
@@ -797,10 +865,10 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .simulation-vuer {
-  --el-color-primary: #8300BF;
-  --el-color-primary-light-7: #DAB3EC;
-  --el-color-primary-light-8: #E6CCF2;
-  --el-color-primary-light-9: #F3E6F9;
+  --el-color-primary: #8300bf;
+  --el-color-primary-light-7: #dab3ec;
+  --el-color-primary-light-8: #e6ccf2;
+  --el-color-primary-light-9: #f3e6f9;
 }
 
 :deep(.el-button:hover) {
@@ -814,12 +882,12 @@ export default {
 
 :deep(.el-loading-spinner) {
   .path {
-    stroke: #8300BF;
+    stroke: #8300bf;
   }
 
   i,
   .el-loading-text {
-    color: #8300BF;
+    color: #8300bf;
   }
 }
 
@@ -827,23 +895,23 @@ export default {
 :deep(.p-floatlabel:has(input:-webkit-autofill)) label,
 :deep(.p-floatlabel:has(textarea:focus)) label,
 :deep(.p-floatlabel:has(.p-inputwrapper-focus)) label {
-  color: #8300BF;
+  color: #8300bf;
 }
 
 :deep(.p-inputtext:enabled:focus) {
-    border-color: #8300BF;
+  border-color: #8300bf;
 }
 
 :deep(.p-progressbar-value) {
-  background-color: #8300BF !important;
+  background-color: #8300bf !important;
 }
 
 :deep(.p-select:not(.p-disabled).p-focus) {
-    border-color: #8300BF;
+  border-color: #8300bf;
 }
 
 :deep(.p-slider-range) {
-  background-color: #8300BF;
+  background-color: #8300bf;
 }
 
 div.input {
@@ -1047,21 +1115,33 @@ span.error {
 
 .p-contextmenu-item-label,
 .p-select-option-label {
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-    font-size: 0.875rem;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif;
+  font-size: 0.875rem;
 }
 
 .p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus {
-    background: #F5F7FA !important;
+  background: #f5f7fa !important;
 }
 
 .p-select-option.p-select-option-selected.p-focus {
-    background: #F5F7FA !important;
-    color: #8300BF !important;
+  background: #f5f7fa !important;
+  color: #8300bf !important;
 }
 
 .p-select-option.p-select-option-selected {
-    background: white !important;
-    color: #8300BF !important;
+  background: white !important;
+  color: #8300bf !important;
 }
 </style>
