@@ -28,6 +28,7 @@
     "vue": "^3.4.21"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.28.6",
     "@vitejs/plugin-vue": "^5.0.3",
     "@vuese/markdown-render": "^2.11.3",
     "babel-eslint": "^10.1.0",
@@ -54,7 +55,8 @@
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser",
+      "requireConfigFile": false
     },
     "rules": {}
   },

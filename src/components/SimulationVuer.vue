@@ -86,7 +86,7 @@ import "@abi-software/plotvuer/dist/style.css";
 import OpenCOR from "@opencor/opencor";
 import "@opencor/opencor/style.css";
 
-import { ElButton, ElDivider, ElLoading } from "element-plus";
+import { ElButton, ElDivider } from "element-plus";
 import { create, all } from "mathjs";
 
 import { evaluateValue, finaliseUi, OPENCOR_SOLVER_NAME } from "./common.js";
@@ -125,7 +125,6 @@ export default {
     SimulationVuerInput,
     ElButton,
     ElDivider,
-    ElLoading,
     OpenCOR,
   },
   props: {

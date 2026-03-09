@@ -80,8 +80,6 @@ function transformData(data = []) {
   }
 
   data.forEach((prop) => {
-    prop.name = prop.name;
-
     if (prop.description) {
       prop.describe = [prop.description.replaceAll("\n", " ")];
     }
