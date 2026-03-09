@@ -52,13 +52,12 @@ async function generateMarkdown(file) {
       fs.mkdirSync(outputDir);
     }
 
-    fs.writeFile(`${outputDir}/${componentName}.md`, markdownContent, (err) => {
-      if (err) {
-        console.error(`Error writing markdown file for ${componentName}`, err);
-      } else {
-        console.log(`Markdown file for ${componentName} is generated!`);
-      }
-    });
+    await fs.promises.writeFile(
+      `${outputDir}/${componentName}.md`,
+      markdownContent,
+    );
+
+    console.log(`Markdown file for ${componentName} is generated!`);
   } catch (e) {
     // log parse or write errors so the developer knows something went wrong
     console.error(`Failed to generate markdown for ${file}:`, e);
