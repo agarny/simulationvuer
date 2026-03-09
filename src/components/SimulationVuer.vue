@@ -563,7 +563,7 @@ export default {
     /**
      * @private
      * Open the given `url` in a new browser tab, making sure to do so safely.
-     * @param url
+     * @arg url
      */
     openUrl(url) {
       const a = document.createElement("a");
