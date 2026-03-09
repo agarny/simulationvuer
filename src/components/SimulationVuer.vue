@@ -61,13 +61,15 @@
 <script>
 import { PlotVuer } from "@abi-software/plotvuer";
 import "@abi-software/plotvuer/dist/style.css";
-import SimulationVuerInput from "./SimulationVuerInput.vue";
-import { ElButton, ElDivider, ElLoading } from "element-plus";
-import { evaluateValue, finaliseUi, OPENCOR_SOLVER_NAME } from "./common.js";
-import { validJson } from "./json.js";
-import { create, all } from "mathjs";
 import OpenCOR from '@opencor/opencor';
 import '@opencor/opencor/style.css';
+
+import { ElButton, ElDivider, ElLoading } from "element-plus";
+import { create, all } from "mathjs";
+
+import { evaluateValue, finaliseUi, OPENCOR_SOLVER_NAME } from "./common.js";
+import { validJson } from "./json.js";
+import SimulationVuerInput from "./SimulationVuerInput.vue";
 
 const PMR_URL = "https://models.physiomeproject.org/";
 
@@ -144,7 +146,7 @@ export default {
     if (idType === IdType.DATASET_ID) {
       const xmlhttp = new XMLHttpRequest();
 
-      xmlhttp.open("GET", this.apiLocation + "/sim/dataset/" + this.id);
+      xmlhttp.open("GET", `${this.apiLocation}/sim/dataset/${this.id}`);
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
           if (xmlhttp.status === 200) {
@@ -651,7 +653,7 @@ export default {
     showHttpIssue(xmlhttp) {
       this.isSimulationValid = false;
       this.showUserMessage = false;
-      this.errorMessage = xmlhttp.statusText.toLowerCase() + " (<a href='https://httpstatuses.com/" + xmlhttp.status + "/' target='_blank'>" + xmlhttp.status + "</a>)";
+      this.errorMessage = `${xmlhttp.statusText.toLowerCase()} (<a href='https://httpstatuses.com/${xmlhttp.status}/' target='_blank'>${xmlhttp.status}</a>)`;
     },
     /**
      * @public
@@ -665,7 +667,7 @@ export default {
 
       const xmlhttp = new XMLHttpRequest();
 
-      xmlhttp.open("POST", this.apiLocation + "/check_simulation");
+      xmlhttp.open("POST", `${this.apiLocation}/check_simulation`);
       xmlhttp.setRequestHeader("Content-type", "application/json");
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
@@ -687,7 +689,7 @@ export default {
 
                 let that = this;
 
-                setTimeout(function () {
+                setTimeout(() => {
                   that.checkSimulation(data);
                 }, 1000);
               }
@@ -719,7 +721,7 @@ export default {
 
         const xmlhttp = new XMLHttpRequest();
 
-        xmlhttp.open("POST", this.apiLocation + "/start_simulation");
+        xmlhttp.open("POST", `${this.apiLocation}/start_simulation`);
         xmlhttp.setRequestHeader("Content-type", "application/json");
         xmlhttp.onreadystatechange = () => {
           if (xmlhttp.readyState === 4) {
@@ -755,7 +757,7 @@ export default {
       this.$nextTick(() => {
         const xmlhttp = new XMLHttpRequest();
 
-        xmlhttp.open("GET", this.apiLocation + "/simulation_ui_file/" + this.id);
+        xmlhttp.open("GET", `${this.apiLocation}/simulation_ui_file/${this.id}`);
         xmlhttp.onreadystatechange = () => {
           if (xmlhttp.readyState === 4) {
             this.showUserMessage = false;
@@ -774,7 +776,7 @@ export default {
     } else if (this.idType === IdType.DATASET_URL) {
       this.opencorOmexFile = this.id;
     } else if (this.idType === IdType.PMR_PATH) {
-      this.opencorOmexFile = PMR_URL + this.id;
+      this.opencorOmexFile = `${PMR_URL}${this.id}`;
     } else { // IdType.RAW_COMBINE_ARCHIVE
       this.opencorOmexFile = this.id;
     }

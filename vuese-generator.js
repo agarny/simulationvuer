@@ -5,11 +5,12 @@
  * To watch components changes for Vitepress on Dev Mode
  */
 
-import fs from 'fs'
-import path from 'path'
-import chokidar from 'chokidar'
-import { parseSource } from 'vue-docgen-api'
 import { Render } from '@vuese/markdown-render'
+
+import chokidar from 'chokidar'
+import fs from 'node:fs'
+import path from 'node:path'
+import { parseSource } from 'vue-docgen-api'
 
 const watchMode = process.argv.find((argv) => argv === 'watch')
 
@@ -45,7 +46,6 @@ function generateMarkdown(file) {
       }
       parseResult.name = 'SimulationVuer' // Because there has another name prop in component
       const r = new Render(parseResult)
-      const renderResult = r.render()
       const markdownResult = r.renderMarkdown()
       const markdownContent = markdownResult.content
       const componentName = path.basename(fileWithPath, '.vue')

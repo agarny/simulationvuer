@@ -38,7 +38,7 @@ export function finaliseUi(parent) {
   if (!parent.hasFinalisedUi && parent.isMounted && parent.hasValidSimulationUiInfo) {
     // Configure the PlotVuer's.
 
-    parent.$refs.output.classList.add("x" + parent.simulationUiInfo.output.plots.length);
+    parent.$refs.output.classList.add(`x${parent.simulationUiInfo.output.plots.length}`);
 
     // Initialise the simulation results.
 

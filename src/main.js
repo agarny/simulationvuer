@@ -1,7 +1,8 @@
+import ElementPlus from "element-plus";
 import { createApp } from "vue";
 import * as VueRouter from "vue-router";
+
 import App from "./App.vue";
-import ElementPlus from "element-plus";
 
 const routes = [{ path: "/", component: App }];
 const router = VueRouter.createRouter({

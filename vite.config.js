@@ -1,10 +1,11 @@
-import path from "path";
-import { resolve } from "node:path";
-const pathSrc = path.resolve(__dirname, "./src");
-import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import Components from "unplugin-vue-components/vite";
+
+import path from "node:path";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+import Components from "unplugin-vue-components/vite";
+import { defineConfig } from "vite";
+
+const pathSrc = path.resolve(__dirname, "./src");
 
 export default defineConfig(({ command, mode }) => {
   const config = {
@@ -60,7 +61,9 @@ export default defineConfig(({ command, mode }) => {
   if (mode === "app") {
     config.base = "./";
 
-    ["build", "define", "resolve", "server"].forEach(key => delete config[key]);
+    for (const key of ["build", "define", "resolve", "server"]) {
+      delete config[key];
+    }
   }
 
   return config;

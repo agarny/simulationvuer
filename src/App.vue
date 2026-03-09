@@ -56,8 +56,9 @@
 </template>
 
 <script>
-import SimulationVuer from "./components/SimulationVuer.vue";
 import { ElRadioButton, ElRadioGroup } from "element-plus";
+
+import SimulationVuer from "./components/SimulationVuer.vue";
 
 export default {
   name: "App",
@@ -66,7 +67,7 @@ export default {
     ElRadioButton,
     ElRadioGroup,
   },
-  data: function () {
+  data: () => {
     return {
       apiLocation: import.meta.env.VITE_API_LOCATION,
       dropAreaCounter: 0,

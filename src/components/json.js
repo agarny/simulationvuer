@@ -1,4 +1,5 @@
 import { Validator } from "jsonschema";
+
 import { OPENCOR_SOLVER_NAME } from "./common.js";
 
 export function validJson(json) {
@@ -241,7 +242,7 @@ export function validJson(json) {
       }
 
       if (inputIdUsed[input.id] !== undefined) {
-        console.warn("JSON: the input id must be unique (" + input.id + " is used more than once).");
+        console.warn(`JSON: the input id must be unique (${input.id} is used more than once).`);
 
         return false;
       }
@@ -275,7 +276,7 @@ export function validJson(json) {
 
       if (!values.every((value) => {
         if (valueUsed[value] !== undefined) {
-          console.warn("JSON: an input possible value must have a unique value (" + value + " is used more than once).");
+          console.warn(`JSON: an input possible value must have a unique value (${value} is used more than once).`);
 
           return false;
         }
@@ -288,7 +289,7 @@ export function validJson(json) {
       }
 
       if (!values.includes(input.defaultValue)) {
-        console.warn("JSON: the input default value (" + input.defaultValue + ") must be one of the possible values (" + values.join(", ") + ").");
+        console.warn(`JSON: the input default value (${input.defaultValue}) must be one of the possible values (${values.join(", ")}).`);
 
         return false;
       }
@@ -296,13 +297,13 @@ export function validJson(json) {
 
     if ((input.minimumValue !== undefined) && (input.maximumValue !== undefined)) {
       if (input.minimumValue >= input.maximumValue) {
-        console.warn("JSON: the input minimum value (" + input.minimumValue + ") must be lower than the maximum value (" + input.maximumValue + ").");
+        console.warn(`JSON: the input minimum value (${input.minimumValue}) must be lower than the maximum value (${input.maximumValue}).`);
 
         return false;
       }
 
       if ((input.defaultValue < input.minimumValue) || (input.defaultValue > input.maximumValue)) {
-        console.warn("JSON: the input default value (" + input.defaultValue + ") must be greater or equal than the minimum value (" + input.minimumValue + ") and lower or equal than the maximum value (" + input.maximumValue + ").");
+        console.warn(`JSON: the input default value (${input.defaultValue}) must be greater or equal than the minimum value (${input.minimumValue}) and lower or equal than the maximum value (${input.maximumValue}).`);
 
         return false;
       }
@@ -311,19 +312,19 @@ export function validJson(json) {
 
       if (input.stepValue !== undefined) {
         if ((input.stepValue <= 0) || (input.stepValue > range)) {
-          console.warn("JSON: the input step value (" + input.stepValue + ") must be greater than zero and lower or equal than the range value (" + range + ").");
+          console.warn(`JSON: the input step value (${input.stepValue}) must be greater than zero and lower or equal than the range value (${range}).`);
 
           return false;
         }
 
         if (!Number.isInteger(range / input.stepValue)) {
-          console.warn("JSON: the input step value (" + input.stepValue + ") must be a factor of the range value (" + range + ").");
+          console.warn(`JSON: the input step value (${input.stepValue}) must be a factor of the range value (${range}).`);
 
           return false;
         }
       } else {
         if (!Number.isInteger(range)) {
-          console.warn("JSON: the (default) input step value (1) must be a factor of the range value (" + range + ").");
+          console.warn(`JSON: the (default) input step value (1) must be a factor of the range value (${range}).`);
 
           return false;
         }
@@ -357,7 +358,7 @@ export function validJson(json) {
       }
 
       if (outputIdUsed[outputData.id] !== undefined) {
-        console.warn("JSON: the output data id must be unique (" + outputData.id + " is used more than once).");
+        console.warn(`JSON: the output data id must be unique (${outputData.id} is used more than once).`);
 
         return false;
       }
@@ -496,13 +497,13 @@ export function validJson(json) {
     if (json.simulation.opencor.endingPoint !== undefined) {
       if (json.simulation.opencor.pointInterval !== undefined) {
         if (json.simulation.opencor.endingPoint <= 0.0) {
-          console.warn("JSON: the simulation OpenCOR ending point (" + json.simulation.opencor.endingPoint + ") must be greater than zero.");
+          console.warn(`JSON: the simulation OpenCOR ending point (${json.simulation.opencor.endingPoint}) must be greater than zero.`);
 
           return false;
         }
 
         if (json.simulation.opencor.pointInterval <= 0.0) {
-          console.warn("JSON: the simulation OpenCOR point interval (" + json.simulation.opencor.pointInterval + ") must be greater than zero.");
+          console.warn(`JSON: the simulation OpenCOR point interval (${json.simulation.opencor.pointInterval}) must be greater than zero.`);
 
           return false;
         }
