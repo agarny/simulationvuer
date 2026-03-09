@@ -784,6 +784,7 @@ export default {
             } else {
               this.showUserMessage = false;
               this.errorMessage = response.description;
+              this.errorStatus = null;
             }
           } else {
             this.showHttpIssue(xmlhttp);
