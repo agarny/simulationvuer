@@ -551,13 +551,32 @@ export default {
       });
     },
     /**
+     * @private
+     * Open the given `url` in a new browser tab, making sure to do so safely.
+     * @param url
+     */
+    openUrl(url) {
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.style.display = "none";
+
+      document.body.appendChild(a);
+
+      a.click();
+
+      document.body.removeChild(a);
+    },
+    /**
      * @public
      * Run the simulation-based dataset directly on oSPARC. Not all simulation-based datasets can be run directly on
      * oSPARC, but for those that can the simulation UI shows a `Run on oSPARC` button which, when clicked, calls this
      * method.
      */
     runOnOsparc() {
-      window.open(`https://osparc.io/study/${this.uuid}`, "_blank");
+      this.openUrl(`https://osparc.io/study/${this.uuid}`);
     },
     /**
      * @public
@@ -565,10 +584,7 @@ export default {
      * clicked, calls this method.
      */
     viewDataset() {
-      window.open(
-        `https://sparc.science/datasets/${this.id}?type=dataset`,
-        "_blank",
-      );
+      this.openUrl(`https://sparc.science/datasets/${this.id}?type=dataset`);
     },
     /**
      * @public
@@ -577,8 +593,7 @@ export default {
      */
     viewWorkspace() {
       const url = PMR_URL + this.id;
-
-      window.open(url.substring(0, url.lastIndexOf("/")), "_blank");
+      this.openUrl(url.substring(0, url.lastIndexOf("/")));
     },
     /**
      * @public
