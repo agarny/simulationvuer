@@ -233,7 +233,9 @@ export default {
       // Check that the subscription is valid.
 
       if (!subscription || typeof subscription !== "object") {
-        console.error("addDataSubscription: subscription must be an object.");
+        console.warn(
+          "SimulationVuer: addDataSubscription: subscription must be an object.",
+        );
 
         return;
       }
@@ -245,7 +247,7 @@ export default {
 
       if (subscription.id !== EXPECTED_ID) {
         console.warn(
-          `addDataSubscription: invalid ID (expected '${EXPECTED_ID}' but got '${subscription.id}').`,
+          `SimulationVuer: addDataSubscription: invalid ID (expected '${EXPECTED_ID}' but got '${subscription.id}').`,
         );
 
         return;
@@ -255,7 +257,7 @@ export default {
 
       if (typeof subscription.version !== "string") {
         console.warn(
-          `addDataSubscription: missing or non-string version ('${subscription.version}').`,
+          `SimulationVuer: addDataSubscription: missing or non-string version ('${subscription.version}').`,
         );
 
         return;
@@ -265,7 +267,7 @@ export default {
 
       if (versionParts.length < 1 || !/^[0-9]+$/.test(versionParts[0])) {
         console.warn(
-          `addDataSubscription: malformed version ('${subscription.version}').`,
+          `SimulationVuer: addDataSubscription: malformed version ('${subscription.version}').`,
         );
 
         return;
@@ -275,7 +277,7 @@ export default {
 
       if (Number.isNaN(subscriptionMajorVersion)) {
         console.warn(
-          `addDataSubscription: could not parse the major version from ('${subscription.version}')`,
+          `SimulationVuer: addDataSubscription: could not parse the major version from ('${subscription.version}')`,
         );
 
         return;
@@ -283,7 +285,7 @@ export default {
 
       if (subscriptionMajorVersion !== EXPECTED_MAJOR_VERSION) {
         console.warn(
-          `addDataSubscription: version mismatch (expected v${EXPECTED_MAJOR_VERSION}.y.z but got v${subscription.version}).`,
+          `SimulationVuer: addDataSubscription: version mismatch (expected v${EXPECTED_MAJOR_VERSION}.y.z but got v${subscription.version}).`,
         );
 
         return;
@@ -312,7 +314,7 @@ export default {
 
       if (missing.length) {
         console.warn(
-          `addDataSubscription: payload missing fields: ${missing.join(", ")}.`,
+          `SimulationVuer: addDataSubscription: payload missing fields: ${missing.join(", ")}.`,
         );
 
         return;
@@ -354,7 +356,7 @@ export default {
 
       if (!subscription) {
         console.warn(
-          `removeDataSubscription: no active subscription found for id ${subscriptionId}.`,
+          `SimulationVuer: removeDataSubscription: no active subscription found for id ${subscriptionId}.`,
         );
 
         return;
@@ -419,7 +421,9 @@ export default {
         const modelParameter = `${activeSubscription.component}/${activeSubscription.variable}`;
 
         if (simulationData[modelParameter] == null) {
-          console.warn(`onSimulationData: no data for ${modelParameter}.`);
+          console.warn(
+            `SimulationVuer: onSimulationData: no data for ${modelParameter}.`,
+          );
 
           return;
         }
@@ -431,7 +435,7 @@ export default {
 
         if (activeSubscription.withVOI) {
           if (simulationData.VOI == null) {
-            console.warn("onSimulationData: no data for VOI.");
+            console.warn("SimulationVuer: onSimulationData: no data for VOI.");
 
             return;
           } else {
