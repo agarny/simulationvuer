@@ -419,8 +419,9 @@ export default {
 
       this.activeSubscriptions.forEach((activeSubscription) => {
         const modelParameter = `${activeSubscription.component}/${activeSubscription.variable}`;
+        const simData = simulationData[modelParameter];
 
-        if (simulationData[modelParameter] == null) {
+        if (simData == null) {
           console.warn(
             `SimulationVuer: onSimulationData: no data for ${modelParameter}.`,
           );
@@ -429,8 +430,8 @@ export default {
         }
 
         const data = {
-          y: simulationData[modelParameter],
-          title: `${activeSubscription.component}.${activeSubscription.variable}`,
+          y: simData.data,
+          title: `${activeSubscription.component}.${activeSubscription.variable} (${simData.unit})`,
         };
 
         if (activeSubscription.withVOI) {
